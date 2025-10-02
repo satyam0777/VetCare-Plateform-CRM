@@ -1,0 +1,527 @@
+const express = require('express');
+const router = express.Router();
+const Appointment = require('../models/Appointment');
+const Report = require('../models/Report');
+const Animal = require('../models/Animal');
+const User = require('../models/User');
+const { auth } = require('../middleware/authMiddleware');
+
+// Helper function to check if user is admin
+const isAdminUser = (userId, userRole) => {
+  return userId === 'admin' || userRole === 'admin';
+};
+
+// @route   GET /api/appointments/user/:id
+// @desc    Get all appointments for a user by user ID
+// @access  Public (add authentication as needed)
+router.get('/user/:id', async (req, res) => {
+  try {
+    const appointments = await Appointment.find({ user: req.params.id })
+      .populate('doctor', 'name specialization email')
+      .populate('user', 'name email')
+      .sort({ date: -1 });
+    res.json(appointments);
+  } catch (err) {
+    console.error('❌ Error fetching appointments by user ID:', err);
+    res.status(500).json({ message: 'Failed to load appointments' });
+  }
+});
+
+// @route   POST /api/appointments
+// @desc    Book a new appointment
+// @access  Private (authenticated users only)
+router.post('/', auth, async (req, res) => {
+  console.log("📥 Appointment request body:", req.body);
+
+  try {
+    // Handle admin users - they cannot book appointments
+    if (isAdminUser(req.user, req.userRole)) {
+      return res.status(403).json({ 
+        error: 'Admin users cannot book appointments' 
+      });
+    }
+    
+    // Validate required fields
+    const { doctor, user, petName, reason, date, time } = req.body;
+    
+    if (!doctor || !user || !petName || !reason || !date || !time) {
+      return res.status(400).json({ 
+        error: "All fields are required: doctor, user, petName, reason, date, time" 
+      });
+    }
+
+    // Ensure the user field matches the authenticated user
+    if (user !== req.user.toString()) {
+      return res.status(403).json({ 
+        error: 'You can only book appointments for yourself' 
+      });
+    }
+
+    const appointment = new Appointment({
+      ...req.body,
+      status: 'pending' // Default status
+    });
+    const savedAppointment = await appointment.save();
+    
+    // Populate the doctor information for the response
+    await savedAppointment.populate('doctor', 'name specialization email');
+
+    console.log("✅ Appointment saved:", savedAppointment);
+    res.status(201).json(savedAppointment);
+  } catch (err) {
+    console.error("❌ Error saving appointment:", err.message);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// @route   PUT /api/appointments/:id/confirm
+// @desc    Confirm appointment (Doctor only)
+// @access  Doctor authentication required
+router.put('/:id/confirm', async (req, res) => {
+  try {
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status: 'confirmed',
+        confirmedAt: new Date()
+      },
+      { new: true }
+    ).populate('doctor', 'name specialization email')
+     .populate('user', 'name email petName');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`✅ Appointment ${req.params.id} confirmed by doctor`);
+    res.json(appointment);
+  } catch (err) {
+    console.error('❌ Error confirming appointment:', err);
+    res.status(500).json({ message: 'Failed to confirm appointment' });
+  }
+});
+
+// @route   PUT /api/appointments/:id/cancel
+// @desc    Cancel appointment (Doctor or User)
+// @access  Authentication required
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const { reason } = req.body;
+    
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        cancellationReason: reason
+      },
+      { new: true }
+    ).populate('doctor', 'name specialization email')
+     .populate('user', 'name email petName');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`✅ Appointment ${req.params.id} cancelled`);
+    res.json(appointment);
+  } catch (err) {
+    console.error('❌ Error cancelling appointment:', err);
+    res.status(500).json({ message: 'Failed to cancel appointment' });
+  }
+});
+
+// @route   PUT /api/appointments/:id/consultation
+// @desc    Add consultation details (Doctor only)
+// @access  Doctor authentication required
+router.put('/:id/consultation', auth, async (req, res) => {
+  try {
+    const { consultation, prescription, payment } = req.body;
+    
+    const updateData = {};
+    
+    if (consultation) {
+      updateData.consultation = consultation;
+    }
+    
+    if (prescription) {
+      updateData.prescription = {
+        ...prescription,
+        prescribedAt: new Date()
+      };
+    }
+    
+    if (payment) {
+      updateData.payment = payment;
+    }
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    ).populate('doctor', 'name specialization email')
+     .populate('user', 'name email petName');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`✅ Consultation details added to appointment ${req.params.id}`);
+    res.json(appointment);
+  } catch (err) {
+    console.error('❌ Error updating consultation:', err);
+    res.status(500).json({ message: 'Failed to update consultation' });
+  }
+});
+
+// @route   PUT /api/appointments/:id/complete
+// @desc    Complete appointment and generate report (Doctor only) - Now triggers payment flow
+// @access  Doctor authentication required
+router.put('/:id/complete', auth, async (req, res) => {
+  try {
+    console.log(`🔄 Starting appointment completion for ID: ${req.params.id}`);
+    console.log(`📥 Request body:`, req.body);
+    console.log(`📋 Content-Type:`, req.headers['content-type']);
+    
+    // ✅ Add safety check for req.body
+    if (!req.body || typeof req.body !== 'object') {
+      console.log('⚠️ Empty or invalid request body - using defaults');
+      req.body = {};
+    }
+    
+    const { consultation = {}, prescription = {}, consultationFee = 500 } = req.body;
+    
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('doctor', 'name specialization email')
+      .populate('user', 'name email petName');
+
+    if (!appointment) {
+      console.log(`❌ Appointment not found: ${req.params.id}`);
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`📋 Found appointment: ${appointment.petName} for ${appointment.user.name}`);
+    console.log(`👨‍⚕️ Doctor info in appointment:`, {
+      doctorId: appointment.doctor?._id,
+      doctorName: appointment.doctor?.name,
+      doctorData: appointment.doctor
+    });
+
+    // Add consultation details and prescription
+    if (consultation) {
+      appointment.consultation = {
+        ...consultation,
+        completedAt: new Date()
+      };
+    }
+
+    if (prescription) {
+      appointment.prescription = {
+        ...prescription,
+        prescribedAt: new Date()
+      };
+    }
+
+    // Update appointment status to 'report_ready' (waiting for payment)
+    appointment.status = 'report_ready';
+    appointment.completedAt = new Date();
+    appointment.reportGenerated = true;
+    appointment.reportGeneratedAt = new Date();
+    
+    // Set consultation fee for payment
+    if (consultationFee) {
+      appointment.payment = {
+        consultationFee: consultationFee,
+        platformFee: Math.round(consultationFee * 0.15), // 15% platform fee
+        totalAmount: Math.round(consultationFee * 1.15), // Including platform fee
+        status: 'pending',
+        createdAt: new Date()
+      };
+    }
+    
+    await appointment.save();
+    console.log(`✅ Appointment status updated to report_ready - waiting for payment`);
+
+    // Find or create animal record for the pet
+    let animal = await Animal.findOne({ 
+      name: appointment.petName,
+      owner: appointment.user._id
+    });
+
+    if (!animal) {
+      // Create new animal record with minimal info
+      animal = new Animal({
+        name: appointment.petName || 'Unknown Pet',
+        type: 'other', // Default type since we don't collect this in appointments
+        age: 1, // Default age
+        gender: 'male', // Default gender
+        owner: appointment.user._id,
+        healthStatus: 'under_treatment'
+      });
+      await animal.save();
+      console.log(`✅ Created new animal record for ${appointment.petName} with ID: ${animal._id}`);
+    } else {
+      console.log(`📋 Found existing animal record for ${appointment.petName} with ID: ${animal._id}`);
+    }
+
+    console.log(`🔄 Creating medical report...`);
+    
+    // Create medical report
+    const report = new Report({
+      title: `Consultation Report - ${appointment.petName}`,
+      animal: animal._id,
+      farmer: appointment.user._id,
+      doctor: appointment.doctor._id,
+      appointment: appointment._id,
+      reportType: 'consultation',
+      diagnosis: appointment.consultation?.diagnosis || 'General checkup',
+      symptoms: appointment.consultation?.symptoms ? [appointment.consultation.symptoms] : [],
+      treatment: appointment.consultation?.examination || 'Routine examination completed',
+      recommendations: appointment.consultation?.recommendations || 'Follow regular care guidelines',
+      prescriptions: appointment.prescription?.medicines?.map(med => ({
+        medicineName: med.name,
+        dosage: med.dosage,
+        frequency: med.frequency,
+        duration: med.duration,
+        instructions: med.instructions || 'Take as prescribed'
+      })) || [],
+      cost: {
+        consultationFee: appointment.payment?.consultationFee || 0,
+        medicinesCost: appointment.payment?.medicineCharges || 0,
+        total: appointment.payment?.totalAmount || 0
+      },
+      status: 'completed',
+      doctorNotes: appointment.consultation?.notes || ''
+    });
+
+    await report.save();
+    console.log(`✅ Medical report created with ID: ${report._id}`);
+
+    // Send notification to user about report ready and payment required
+    try {
+      const NotificationService = require('../services/notificationService');
+      await NotificationService.sendNotification(appointment.user._id, {
+        title: '📋 Medical Report Ready',
+        body: `Dr. ${appointment.doctor.name} has completed your consultation for ${appointment.petName}. Please complete payment to access the full report.`,
+        type: 'report_ready',
+        data: {
+          appointmentId: appointment._id.toString(),
+          doctorName: appointment.doctor.name,
+          petName: appointment.petName,
+          consultationFee: appointment.payment?.consultationFee || 0,
+          totalAmount: appointment.payment?.totalAmount || 0,
+          action: 'make_payment'
+        }
+      });
+      console.log(`✅ Notification sent to user about report ready`);
+    } catch (notifError) {
+      console.log(`⚠️ Failed to send notification:`, notifError.message);
+    }
+
+    console.log(`✅ Appointment ${req.params.id} completed with report - waiting for payment`);
+    res.json({ 
+      appointment, 
+      report,
+      message: 'Consultation completed successfully. Report generated and waiting for payment.',
+      nextStep: 'payment_required'
+    });
+  } catch (err) {
+    console.error('❌ Error completing appointment:', err);
+    res.status(500).json({ 
+      message: 'Failed to complete appointment',
+      error: err.message 
+    });
+  }
+});
+
+// @route   GET /api/appointments/:email
+// @desc    Get all appointments for a user by email
+// @access  Public (you might want to add authentication later)
+router.get('/:email', async (req, res) => {
+  try {
+    // First find the user by email to get their _id
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Then find appointments by user _id
+    const appointments = await Appointment.find({ user: user._id })
+      .populate('doctor', 'name specialization email phone')
+      .populate('user', 'name email petName')
+      .sort({ date: -1 });
+
+    console.log(`✅ Found ${appointments.length} appointments for ${req.params.email}`);
+    res.json(appointments);
+  } catch (err) {
+    console.error('❌ Error fetching appointments:', err);
+    res.status(500).json({ message: 'Failed to load appointments' });
+  }
+});
+
+// @route   GET /api/appointments
+// @desc    Get appointments with filtering (for admin or doctor)
+// @access  Admin only (you might want to add authentication)
+router.get('/', async (req, res) => {
+  try {
+    const { doctor, date, status } = req.query;
+    let filter = {};
+    
+    // If doctor ID is provided, filter by doctor
+    if (doctor) {
+      filter.doctor = doctor;
+    }
+    
+    // If date is provided, filter by date
+    if (date) {
+      filter.date = date;
+    }
+    
+    // If status is provided, filter by status
+    if (status) {
+      filter.status = status;
+    }
+
+    const appointments = await Appointment.find(filter)
+      .populate('doctor', 'name specialization email')
+      .populate('user', 'name email petName')
+      .sort({ date: -1, time: 1 });
+
+    console.log(`✅ Found ${appointments.length} appointments with filter:`, filter);
+    res.json(appointments);
+  } catch (err) {
+    console.error('❌ Error fetching appointments:', err);
+    res.status(500).json({ message: 'Failed to load appointments' });
+  }
+});
+
+// @route   GET /api/appointments/doctor/:doctorId
+// @desc    Get all appointments for a specific doctor
+// @access  Doctor authentication required
+router.get('/doctor/:doctorId', async (req, res) => {
+  try {
+    const { date } = req.query;
+    let filter = { doctor: req.params.doctorId };
+    
+    // If date is provided, filter by specific date, otherwise get all
+    if (date) {
+      filter.date = date;
+    }
+
+    const appointments = await Appointment.find(filter)
+      .populate('doctor', 'name specialization email')
+      .populate('user', 'name email petName')
+      .sort({ date: -1, time: 1 });
+
+    console.log(`✅ Found ${appointments.length} appointments for doctor ${req.params.doctorId}`);
+    res.json(appointments);
+  } catch (err) {
+    console.error('❌ Error fetching doctor appointments:', err);
+    res.status(500).json({ message: 'Failed to load doctor appointments' });
+  }
+});
+
+// @route   PATCH /api/appointments/:id
+// @desc    Update appointment status
+// @access  Doctor/Admin authentication required
+router.patch('/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    ).populate('doctor', 'name specialization email')
+     .populate('user', 'name email petName');
+
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`✅ Updated appointment ${req.params.id} status to ${status}`);
+    res.json(appointment);
+  } catch (err) {
+    console.error('❌ Error updating appointment:', err);
+    res.status(500).json({ message: 'Failed to update appointment' });
+  }
+});
+
+// @route   DELETE /api/appointments/:id
+// @desc    Delete/Cancel appointment
+// @access  Admin authentication required
+router.delete('/:id', async (req, res) => {
+  try {
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    console.log(`✅ Deleted appointment ${req.params.id}`);
+    res.json({ message: 'Appointment cancelled successfully' });
+  } catch (err) {
+    console.error('❌ Error deleting appointment:', err);
+    res.status(500).json({ message: 'Failed to cancel appointment' });
+  }
+});
+
+// @route   GET /api/appointments/:id/payment-status
+// @desc    Check if appointment needs payment (for frontend)
+// @access  Private
+router.get('/:id/payment-status', auth, async (req, res) => {
+  try {
+    // Handle admin users - they don't have personal appointments
+    if (isAdminUser(req.user, req.userRole)) {
+      return res.status(403).json({ 
+        error: 'Admin users do not have personal appointments' 
+      });
+    }
+    
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('doctor', 'name specialization')
+      .populate('user', 'name email');
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    // Check user authorization
+    const userId = req.user.toString();
+    if (appointment.user._id.toString() !== userId) {
+      return res.status(403).json({ error: 'Unauthorized access' });
+    }
+
+    const paymentStatus = {
+      appointmentId: appointment._id,
+      status: appointment.status,
+      reportReady: appointment.status === 'report_ready' || appointment.status === 'completed',
+      paymentRequired: appointment.status === 'report_ready',
+      paymentCompleted: appointment.payment?.status === 'completed',
+      consultationFee: appointment.payment?.consultationFee || 0,
+      platformFee: appointment.payment?.platformFee || 0,
+      totalAmount: appointment.payment?.totalAmount || 0,
+      doctorName: appointment.doctor.name,
+      petName: appointment.petName,
+      appointmentDate: appointment.date,
+      appointmentTime: appointment.time
+    };
+
+    res.json({
+      success: true,
+      paymentStatus
+    });
+
+  } catch (error) {
+    console.error('❌ Error checking payment status:', error);
+    res.status(500).json({ error: 'Failed to check payment status' });
+  }
+});
+
+module.exports = router;
+
+
+
+
+
+// This code defines the routes for managing appointments in a veterinary care application.
+// It uses Express to create a router that handles POST requests for booking new appointments and GET requests
