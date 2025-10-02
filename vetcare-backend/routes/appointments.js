@@ -4,7 +4,7 @@ const Appointment = require('../models/Appointment');
 const Report = require('../models/Report');
 const Animal = require('../models/Animal');
 const User = require('../models/User');
-const { auth } = require('../middleware/authMiddleware');
+const { auth, doctorAuth } = require('../middleware/authMiddleware');
 
 // Helper function to check if user is admin
 const isAdminUser = (userId, userRole) => {
@@ -77,7 +77,7 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT /api/appointments/:id/confirm
 // @desc    Confirm appointment (Doctor only)
 // @access  Doctor authentication required
-router.put('/:id/confirm', async (req, res) => {
+router.put('/:id/confirm', doctorAuth, async (req, res) => {
   try {
     const appointment = await Appointment.findByIdAndUpdate(
       req.params.id,
@@ -104,7 +104,7 @@ router.put('/:id/confirm', async (req, res) => {
 // @route   PUT /api/appointments/:id/cancel
 // @desc    Cancel appointment (Doctor or User)
 // @access  Authentication required
-router.put('/:id/cancel', async (req, res) => {
+router.put('/:id/cancel', doctorAuth, async (req, res) => {
   try {
     const { reason } = req.body;
     
@@ -134,7 +134,7 @@ router.put('/:id/cancel', async (req, res) => {
 // @route   PUT /api/appointments/:id/consultation
 // @desc    Add consultation details (Doctor only)
 // @access  Doctor authentication required
-router.put('/:id/consultation', auth, async (req, res) => {
+router.put('/:id/consultation', doctorAuth, async (req, res) => {
   try {
     const { consultation, prescription, payment } = req.body;
     
@@ -177,7 +177,7 @@ router.put('/:id/consultation', auth, async (req, res) => {
 // @route   PUT /api/appointments/:id/complete
 // @desc    Complete appointment and generate report (Doctor only) - Now triggers payment flow
 // @access  Doctor authentication required
-router.put('/:id/complete', auth, async (req, res) => {
+router.put('/:id/complete', doctorAuth, async (req, res) => {
   try {
     console.log(`🔄 Starting appointment completion for ID: ${req.params.id}`);
     console.log(`📥 Request body:`, req.body);
@@ -397,9 +397,47 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/appointments/doctor/:doctorId
 // @desc    Get all appointments for a specific doctor
-// @access  Doctor authentication required
+// @access  Doctor authentication required OR public with valid doctor link
 router.get('/doctor/:doctorId', async (req, res) => {
   try {
+    console.log('🔍 Doctor appointments request:', {
+      doctorId: req.params.doctorId,
+      hasAuth: !!req.header('Authorization'),
+      hasDoctorLink: !!req.header('Doctor-Link'),
+      query: req.query
+    });
+
+    // Check if doctor link is provided in header or query
+    const doctorLink = req.header('Doctor-Link') || req.query.doctorLink;
+    
+    if (doctorLink) {
+      // Verify the doctor link
+      const Doctor = require('../models/Doctor');
+      const doctor = await Doctor.findOne({ 
+        uniqueAccessLink: doctorLink,
+        status: 'active'
+      });
+      
+      if (!doctor) {
+        console.log('❌ Invalid doctor link:', doctorLink);
+        return res.status(401).json({ message: 'Invalid doctor access link' });
+      }
+      
+      // Verify the doctor ID matches
+      if (doctor._id.toString() !== req.params.doctorId) {
+        console.log('❌ Doctor ID mismatch:', { 
+          linkDoctorId: doctor._id.toString(), 
+          requestedDoctorId: req.params.doctorId 
+        });
+        return res.status(403).json({ message: 'Doctor ID does not match access link' });
+      }
+      
+      console.log('✅ Doctor verified via link:', doctor.name);
+    } else {
+      // No doctor link, require JWT authentication
+      return res.status(401).json({ message: 'Doctor authentication required' });
+    }
+
     const { date } = req.query;
     let filter = { doctor: req.params.doctorId };
     

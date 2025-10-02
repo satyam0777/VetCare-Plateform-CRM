@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Report = require('../models/Report');
 const PDFDocument = require('pdfkit');
-const { auth } = require('../middleware/authMiddleware');
+const { auth, adminOnly, doctorAuth, flexibleAuth } = require('../middleware/authMiddleware');
 
 // Helper function to check if user is admin
 const isAdminUser = (userId, userRole) => {
@@ -86,7 +86,7 @@ function drawRoundedRect(doc, x, y, width, height, radius, fillColor, borderColo
 }
 
 // Download report as PDF
-router.get('/:id/download', auth, async (req, res) => {
+router.get('/:id/download', flexibleAuth, async (req, res) => {
   try {
     const reportId = req.params.id;
     let userId = req.user;
@@ -108,6 +108,15 @@ router.get('/:id/download', auth, async (req, res) => {
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
+
+    // ✅ Authorization check - users can only download their own reports, doctors and admins can download any
+    if (req.userRole === 'user') {
+      // For regular users, check if they own this report
+      if (report.farmer && report.farmer._id.toString() !== req.user.toString()) {
+        return res.status(403).json({ message: 'Access denied. You can only download your own reports.' });
+      }
+    }
+    // Doctors and admins can download any report (no additional check needed)
 
     // ✅ Enhanced debug logging to see raw IDs
     console.log('📊 Report data check:', {

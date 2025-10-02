@@ -681,18 +681,32 @@ router.post('/send-announcement', auth, async (req, res) => {
   try {
     const { title, message, recipientRole, priority = 'medium', channels } = req.body;
     const senderId = req.user;
-    // Check if user is admin (you might want to add admin middleware)
-    const sender = await User.findById(senderId);
     
-    if (!sender) {
-      console.log('ℹ️ Info logged');
-      return res.status(403).json({ error: 'User not found' });
+    // ✅ Handle system admin (who doesn't exist in User collection)
+    let sender;
+    if (senderId === 'admin' && req.userRole === 'admin') {
+      // System admin case
+      sender = {
+        _id: 'admin',
+        name: process.env.ADMIN_NAME || 'VetCare Administrator',
+        email: process.env.ADMIN_EMAIL || 'admin@vetcare.com',
+        role: 'admin'
+      };
+      console.log('✅ System admin authentication verified');
+    } else {
+      // Regular user case - check in database
+      sender = await User.findById(senderId);
+      
+      if (!sender) {
+        console.log('❌ User not found for ID:', senderId);
+        return res.status(403).json({ error: 'User not found' });
+      }
     }
     
     console.log('✅ Sender found:', sender.name, 'Email:', sender.email, 'Role:', sender.role);
     
     if (sender.role !== 'admin') {
-      console.log('ℹ️ Info logged');
+      console.log('❌ Access denied - not admin. Role:', sender.role);
       return res.status(403).json({ error: 'Only admins can send announcements' });
     }
 

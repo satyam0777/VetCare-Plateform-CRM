@@ -60,10 +60,15 @@ const io = socketIO(server, {
 
 // CORS configuration
 app.use(cors({ 
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'], 
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:3000', 
+    'http://localhost:3001',
+    process.env.FRONTEND_URL || 'http://localhost:3000'  // Production frontend URL
+  ], 
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Doctor-Link']
 }));
 
 // Security headers
