@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../utils/api';
 
-const AppointmentsPanel = () => {
+const AppointmentsPanel = ({ doctorLink }) => {
+  console.log('🔍 AppointmentsPanel initialized with doctorLink:', doctorLink);
+  console.log('🔍 typeof doctorLink:', typeof doctorLink);
+  console.log('🔍 doctorLink truthy check:', !!doctorLink);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,43 +31,110 @@ const AppointmentsPanel = () => {
     totalAmount: 500
   });
 
+  // Helper function to add doctor link to API headers
+  const getDoctorApiConfig = () => {
+    const config = {};
+    if (doctorLink) {
+      config.headers = {
+        'Doctor-Link': doctorLink
+      };
+      console.log('🔑 Using doctor link for authentication:', doctorLink);
+    } else {
+      console.log('⚠️ No doctor link available for authentication');
+    }
+    return config;
+  };
+
   useEffect(() => {
     const fetchAppointments = async () => {
       setLoading(true);
       setError('');
       try {
-        // Get doctor info from localStorage (stored when doctor logs in)
-        const doctorData = localStorage.getItem('doctor');
+        console.log('🔍 Starting appointment fetch process...');
+        console.log('🔍 Available doctorLink prop:', doctorLink);
+        console.log('🔍 Current localStorage contents:', {
+          doctor: localStorage.getItem('doctor'),
+          token: localStorage.getItem('token'),
+          user: localStorage.getItem('user'),
+          userRole: localStorage.getItem('userRole')
+        });
+        
+        // ✅ Wait for doctor data to be available
         let doctorId = '';
+        let attempts = 0;
+        const maxAttempts = 10; // Wait up to 5 seconds
         
-        if (doctorData) {
-          const doctor = JSON.parse(doctorData);
-          doctorId = doctor._id || doctor.id;
-        }
-        
-        // If no doctor ID found, try to get from JWT token
-        if (!doctorId) {
-          const token = localStorage.getItem('token');
-          if (token) {
+        // Try to get doctor data with retries
+        while (!doctorId && attempts < maxAttempts) {
+          const doctorData = localStorage.getItem('doctor');
+          console.log('🔍 Raw doctor data from localStorage:', doctorData);
+          if (doctorData) {
             try {
-              const payload = JSON.parse(atob(token.split('.')[1]));
-              doctorId = payload.id;
-            } catch (err) {
-              console.error('Error parsing token:', err);
+              const doctor = JSON.parse(doctorData);
+              console.log('🔍 Parsed doctor object:', doctor);
+              doctorId = doctor._id || doctor.id;
+              console.log('✅ Found doctor data:', { id: doctorId, name: doctor.name });
+              break;
+            } catch (parseErr) {
+              console.error('Error parsing doctor data:', parseErr);
             }
+          }
+          
+          // If no doctor data yet, wait a bit and try again
+          if (!doctorId) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            attempts++;
+            console.log(`⏳ Waiting for doctor data... attempt ${attempts}/${maxAttempts}`);
+          }
+        }
+
+        // If still no doctor ID, try to fetch it using the link
+        if (!doctorId && doctorLink) {
+          console.log('🔄 Fetching doctor data using link:', doctorLink);
+          try {
+            const res = await api.get(`/doctors?uniqueAccessLink=${doctorLink}`);
+            if (res.data && res.data.length > 0) {
+              const doctor = res.data[0];
+              doctorId = doctor._id || doctor.id;
+              localStorage.setItem('doctor', JSON.stringify(doctor));
+              console.log('✅ Fetched and stored doctor data:', { id: doctorId, name: doctor.name });
+            }
+          } catch (fetchErr) {
+            console.error('Error fetching doctor by link:', fetchErr);
           }
         }
 
         if (!doctorId) {
-          setError('Doctor ID not found. Please log in again.');
+          setError('Unable to identify doctor. Please refresh the page.');
           setLoading(false);
           return;
         }
 
-        console.log('Fetching appointments for doctor:', doctorId);
+        console.log('🔄 Fetching appointments for doctor:', doctorId);
+        
+        // ✅ Use doctor authentication config
+        const apiConfig = getDoctorApiConfig();
+        
+        // Add doctor link as query parameter as fallback
+        const queryParams = new URLSearchParams();
+        if (viewMode === 'today') {
+          queryParams.append('date', selectedDate);
+        }
+        if (doctorLink) {
+          queryParams.append('doctorLink', doctorLink);
+        }
+        
+        const queryString = queryParams.toString();
+        const url = `/appointments/doctor/${doctorId}${queryString ? `?${queryString}` : ''}`;
+        
+        console.log('🔍 About to make API call with:');
+        console.log('  📍 URL:', url);
+        console.log('  � doctorLink prop:', doctorLink);
+        console.log('  🔑 API config:', apiConfig);
+        console.log('  🆔 doctorId:', doctorId);
         
         // Use the new doctor-specific endpoint
-        const res = await api.get(`/appointments/doctor/${doctorId}${viewMode === 'today' ? `?date=${selectedDate}` : ''}`);
+        const res = await api.get(url, apiConfig);
         
         // Sort appointments by time for better display
         const sortedAppointments = res.data.sort((a, b) => {
@@ -84,11 +154,12 @@ const AppointmentsPanel = () => {
     };
     
     fetchAppointments();
-  }, [selectedDate, viewMode]);
+  }, [selectedDate, viewMode, doctorLink]);
 
   const handleConfirm = async (appointmentId) => {
     try {
-      const res = await api.put(`/appointments/${appointmentId}/confirm`);
+      const apiConfig = getDoctorApiConfig();
+      const res = await api.put(`/appointments/${appointmentId}/confirm`, {}, apiConfig);
       setAppointments(appts => appts.map(appt => 
         appt._id === appointmentId ? { ...appt, status: 'confirmed', confirmedAt: new Date() } : appt
       ));
@@ -103,7 +174,8 @@ const AppointmentsPanel = () => {
     if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
     
     try {
-      await api.put(`/appointments/${appointmentId}/cancel`, { reason });
+      const apiConfig = getDoctorApiConfig();
+      await api.put(`/appointments/${appointmentId}/cancel`, { reason }, apiConfig);
       setAppointments(appts => appts.map(appt => 
         appt._id === appointmentId ? { ...appt, status: 'cancelled', cancelledAt: new Date() } : appt
       ));
@@ -165,11 +237,12 @@ const AppointmentsPanel = () => {
 
   const saveConsultation = async () => {
     try {
+      const apiConfig = getDoctorApiConfig();
       await api.put(`/appointments/${selectedAppointment._id}/consultation`, {
         consultation: consultationData,
         prescription: prescriptionData,
         payment: paymentData
-      });
+      }, apiConfig);
       
       // Update local state
       setAppointments(appts => appts.map(appt => 
@@ -194,12 +267,13 @@ const AppointmentsPanel = () => {
 
   const completeAppointment = async () => {
     try {
+      const apiConfig = getDoctorApiConfig();
       // ✅ Send consultation, prescription, and payment data to backend
       const res = await api.put(`/appointments/${selectedAppointment._id}/complete`, {
         consultation: consultationData,
         prescription: prescriptionData,
         consultationFee: paymentData.consultationFee || 500
-      });
+      }, apiConfig);
       
       // Update local state
       setAppointments(appts => appts.map(appt => 
@@ -232,9 +306,12 @@ const AppointmentsPanel = () => {
 
   const downloadReport = async (reportId) => {
     try {
-      const response = await api.get(`/reports/${reportId}/download`, {
-        responseType: 'blob'
-      });
+      const apiConfig = {
+        responseType: 'blob',
+        ...getDoctorApiConfig()
+      };
+      
+      const response = await api.get(`/reports/${reportId}/download`, apiConfig);
       
       // Create blob link to download
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -484,9 +561,9 @@ const AppointmentsPanel = () => {
 
       {/* Consultation Modal */}
       {showConsultationModal && selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-2">
-          <div className="bg-white rounded-2xl shadow-2xl w-[98vw] h-[98vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-[9999] p-2 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl my-2 min-h-[calc(100vh-1rem)] max-h-[calc(100vh-1rem)] flex flex-col overflow-hidden">
+            <div className="sticky top-0 bg-white p-4 border-b border-gray-200 rounded-t-2xl z-10">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-800">
                   🩺 Consultation - {selectedAppointment.petName}
@@ -503,115 +580,112 @@ const AppointmentsPanel = () => {
               </p>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="p-4 space-y-4 pb-6 h-full">{/* Added bottom padding for better spacing */}
               {/* Consultation Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 relative z-20">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Symptoms</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Symptoms</label>
                   <textarea
                     value={consultationData.symptoms}
                     onChange={(e) => setConsultationData(prev => ({ ...prev, symptoms: e.target.value }))}
                     placeholder="Describe observed symptoms..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 relative z-30"
                     rows="3"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Physical Examination</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Physical Examination</label>
                   <textarea
                     value={consultationData.examination}
                     onChange={(e) => setConsultationData(prev => ({ ...prev, examination: e.target.value }))}
                     placeholder="Physical examination findings..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 relative z-30"
                     rows="3"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Diagnosis</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Diagnosis</label>
                   <textarea
                     value={consultationData.diagnosis}
                     onChange={(e) => setConsultationData(prev => ({ ...prev, diagnosis: e.target.value }))}
                     placeholder="Primary diagnosis..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 relative z-30"
                     rows="3"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Recommendations</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Recommendations</label>
                   <textarea
                     value={consultationData.recommendations}
                     onChange={(e) => setConsultationData(prev => ({ ...prev, recommendations: e.target.value }))}
                     placeholder="Treatment recommendations and care instructions..."
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 relative z-30"
                     rows="3"
                   />
                 </div>
               </div>
 
               {/* Prescription */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
+              <div className="relative z-20">
+                <div className="flex items-center justify-between mb-3">
                   <h4 className="text-lg font-semibold text-gray-800">💊 Prescription</h4>
                   <button
                     onClick={addMedicine}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors relative z-30"
                   >
                     + Add Medicine
                   </button>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {prescriptionData.medicines.map((medicine, index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div key={index} className="bg-gray-50 p-3 rounded-lg relative z-30">
+                      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         <input
                           type="text"
                           placeholder="Medicine Name"
                           value={medicine.name}
                           onChange={(e) => updateMedicine(index, 'name', e.target.value)}
-                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm relative z-40"
                         />
                         <input
                           type="text"
                           placeholder="Dosage"
                           value={medicine.dosage}
                           onChange={(e) => updateMedicine(index, 'dosage', e.target.value)}
-                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm relative z-40"
                         />
                         <input
                           type="text"
                           placeholder="Frequency"
                           value={medicine.frequency}
                           onChange={(e) => updateMedicine(index, 'frequency', e.target.value)}
-                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm relative z-40"
                         />
                         <input
                           type="text"
                           placeholder="Duration"
                           value={medicine.duration}
                           onChange={(e) => updateMedicine(index, 'duration', e.target.value)}
-                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm relative z-40"
                         />
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Instructions"
-                            value={medicine.instructions}
-                            onChange={(e) => updateMedicine(index, 'instructions', e.target.value)}
-                            className="flex-1 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                          />
-                          {prescriptionData.medicines.length > 1 && (
-                            <button
-                              onClick={() => removeMedicine(index)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded transition-colors"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
+                        <input
+                          type="text"
+                          placeholder="Instructions"
+                          value={medicine.instructions}
+                          onChange={(e) => updateMedicine(index, 'instructions', e.target.value)}
+                          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm relative z-40"
+                        />
+                        <button
+                          onClick={() => removeMedicine(index)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm transition-colors relative z-40"
+                        >
+                          Remove
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -652,27 +726,30 @@ const AppointmentsPanel = () => {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
-                <button
-                  onClick={saveConsultation}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  💾 Save Consultation
-                </button>
-                <button
-                  onClick={completeAppointment}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  ✅ Complete & Generate Report
-                </button>
-                <button
-                  onClick={() => setShowConsultationModal(false)}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
+              {/* Actions - Sticky Footer */}
+              <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 rounded-b-2xl z-10">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={saveConsultation}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    💾 Save Consultation
+                  </button>
+                  <button
+                    onClick={completeAppointment}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    ✅ Complete & Generate Report
+                  </button>
+                  <button
+                    onClick={() => setShowConsultationModal(false)}
+                    className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -802,20 +879,20 @@ const AppointmentsPanel = () => {
 
                   {/* Payment Summary */}
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-3">💳 Payment Summary</h4>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <h4 className="font-semibold text-gray-800 mb-2">💳 Payment Summary</h4>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                         <div className="text-center">
                           <p className="text-gray-600">Consultation Fee</p>
-                          <p className="text-xl font-bold text-blue-600">₹{generatedReport.payment.consultationFee}</p>
+                          <p className="text-lg font-bold text-blue-600">₹{generatedReport.payment.consultationFee}</p>
                         </div>
                         <div className="text-center">
                           <p className="text-gray-600">Medicine Charges</p>
-                          <p className="text-xl font-bold text-green-600">₹{generatedReport.payment.medicineCharges}</p>
+                          <p className="text-lg font-bold text-green-600">₹{generatedReport.payment.medicineCharges}</p>
                         </div>
                         <div className="text-center border-l border-blue-300 md:pl-4">
                           <p className="text-gray-600">Total Amount</p>
-                          <p className="text-2xl font-bold text-emerald-600">₹{generatedReport.payment.totalAmount}</p>
+                          <p className="text-xl font-bold text-emerald-600">₹{generatedReport.payment.totalAmount}</p>
                         </div>
                       </div>
                     </div>

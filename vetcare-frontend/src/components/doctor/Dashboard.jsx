@@ -142,7 +142,7 @@ const Dashboard = () => {
               ✕
             </button>
             <div className="p-6 pt-16">
-              {modal === 'appointments' && <AppointmentsPanel />}
+              {modal === 'appointments' && <AppointmentsPanel doctorLink={link} />}
               {modal === 'patient' && <PatientDetailsPanel />}
               {modal === 'consultation' && <ConsultationPanel />}
               {modal === 'reports' && <ReportsPanel />}
