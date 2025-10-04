@@ -52,7 +52,7 @@ const appointmentSchema = new mongoose.Schema({
     currency: { type: String, default: 'INR' },
     status: { 
       type: String, 
-      enum: ['pending', 'completed', 'failed', 'refunded'], 
+      enum: ['pending', 'paid', 'failed', 'refunded'], 
       default: 'pending' 
     },
     method: { 
@@ -72,8 +72,25 @@ const appointmentSchema = new mongoose.Schema({
     },
     refundAmount: Number,
     refundedAt: Date,
-    platformFee: { type: Number, default: 0 },
-    doctorEarnings: { type: Number, default: 0 },
+    
+    // ===== STARTUP REVENUE TRACKING (CRITICAL) =====
+    platformCommission: { type: Number, default: 0 }, // 15% of consultation fee
+    doctorEarnings: { type: Number, default: 0 },      // 85% of consultation fee
+    commissionRate: { type: Number, default: 0.15 },   // 15% commission rate
+    
+    // Doctor payout tracking
+    doctorPayout: { 
+      type: String, 
+      enum: ['pending', 'processed', 'failed'], 
+      default: 'pending' 
+    },
+    payoutDate: Date,
+    payoutReference: String, // Bank transaction reference
+    
+    // Revenue analytics
+    revenueMonth: String,  // "2025-01" for monthly tracking
+    revenueYear: Number,   // 2025 for yearly tracking
+    
     paymentMethod: { type: String }
   },
   // Consultation details
@@ -100,6 +117,21 @@ const appointmentSchema = new mongoose.Schema({
 // Update the updatedAt field before saving
 appointmentSchema.pre('save', function(next) {
   this.updatedAt = new Date();
+  
+  // Auto-calculate commission and earnings when payment details change
+  if (this.payment && this.payment.consultationFee > 0) {
+    const consultationFee = this.payment.consultationFee;
+    const commissionRate = this.payment.commissionRate || 0.15;
+    
+    this.payment.platformCommission = Math.round(consultationFee * commissionRate);
+    this.payment.doctorEarnings = consultationFee - this.payment.platformCommission;
+    
+    // Set revenue tracking fields
+    const now = new Date();
+    this.payment.revenueMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    this.payment.revenueYear = now.getFullYear();
+  }
+  
   next();
 });
 
