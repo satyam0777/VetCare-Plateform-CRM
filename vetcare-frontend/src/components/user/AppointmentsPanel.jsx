@@ -9,6 +9,7 @@ const AppointmentsPanel = ({ doctors }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState({ canBookAppointments: true, pendingAmount: 0, hasPendingPayments: false });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -27,7 +28,44 @@ const AppointmentsPanel = ({ doctors }) => {
         setError('Failed to fetch appointments');
       }
     };
+
+    const fetchPaymentStatus = async () => {
+      try {
+        const userRole = localStorage.getItem('userRole');
+        const token = localStorage.getItem('token');
+        
+        // Don't check payment status for admin users
+        if (userRole === 'admin') {
+          return;
+        }
+        
+        // Check if user is authenticated
+        if (!token) {
+          console.log('No authentication token found');
+          setPaymentStatus({ canBookAppointments: false, pendingAmount: 0, hasPendingPayments: false });
+          return;
+        }
+        
+        const res = await api.get('/payments/user/status');
+        setPaymentStatus({
+          canBookAppointments: res.data.canBookAppointments,
+          pendingAmount: res.data.paymentStatus.unpaidAmount,
+          hasPendingPayments: res.data.paymentStatus.hasPendingPayments
+        });
+      } catch (err) {
+        console.error('Error fetching payment status:', err);
+        if (err.response?.status === 401) {
+          console.log('Authentication failed');
+          setPaymentStatus({ canBookAppointments: false, pendingAmount: 0, hasPendingPayments: false });
+        } else {
+          // Default to allowing bookings if API fails for other reasons
+          setPaymentStatus({ canBookAppointments: true, pendingAmount: 0, hasPendingPayments: false });
+        }
+      }
+    };
+
     fetchAppointments();
+    fetchPaymentStatus();
   }, []);
 
   const handleChange = (e) => {
@@ -41,6 +79,13 @@ const AppointmentsPanel = ({ doctors }) => {
     setSuccess('');
     
     try {
+      // Check payment status first
+      if (!paymentStatus.canBookAppointments) {
+        setError(`Please clear your pending dues of ₹${paymentStatus.pendingAmount} before booking new appointments.`);
+        setLoading(false);
+        return;
+      }
+
       // Get user ID from localStorage or context (assuming JWT payload)
       const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('userRole');
@@ -85,7 +130,13 @@ const AppointmentsPanel = ({ doctors }) => {
       setForm({ doctor: '', petName: '', reason: '', date: '', time: '' });
     } catch (err) {
       console.error('Error booking appointment:', err);
-      setError(err.response?.data?.error || 'Failed to book appointment');
+      
+      // Check if it's a payment restriction error
+      if (err.response?.status === 402 && err.response?.data?.paymentRequired) {
+        setError(err.response.data.message || `You have unpaid consultations. Please clear pending payments before booking new appointments.`);
+      } else {
+        setError(err.response?.data?.error || err.response?.data?.message || 'Failed to book appointment');
+      }
     }
     setLoading(false);
   };
@@ -133,6 +184,36 @@ const AppointmentsPanel = ({ doctors }) => {
             <div>
               <h4 className="text-yellow-800 font-semibold">Admin Access Notice</h4>
               <p className="text-yellow-700 text-sm">Admin users cannot book personal appointments. Use the admin dashboard to manage platform appointments.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Status Warning */}
+      {!isAdmin && !paymentStatus.canBookAppointments && (
+        <div className="bg-red-50/80 backdrop-blur-sm border border-red-200/50 rounded-xl p-4 mb-6">
+          <div className="flex items-center space-x-3">
+            <span className="text-red-600 text-2xl">💳</span>
+            <div className="flex-1">
+              <h4 className="text-red-800 font-semibold">Payment Required</h4>
+              <p className="text-red-700 text-sm mb-2">
+                You have pending dues of <span className="font-bold">₹{paymentStatus.pendingAmount}</span>. 
+                Please clear your previous payments before booking new appointments.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => window.location.href = '#reports'}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                >
+                  💳 Pay Now
+                </button>
+                <button
+                  onClick={() => window.location.href = '#bills'}
+                  className="bg-white text-red-600 border border-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                >
+                  📄 View Bills
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -189,7 +270,7 @@ const AppointmentsPanel = ({ doctors }) => {
       </div>
 
       {/* Booking Form */}
-      {!isAdmin && (
+      {!isAdmin && paymentStatus.canBookAppointments && (
         <form className="mb-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -278,16 +359,21 @@ const AppointmentsPanel = ({ doctors }) => {
         <button 
           type="submit" 
           className={`w-full py-3 px-6 rounded-xl font-semibold text-white transition-all duration-300 ${
-            loading || availableDoctors.length === 0
+            loading || availableDoctors.length === 0 || !paymentStatus.canBookAppointments
               ? 'bg-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
           }`}
-          disabled={loading || availableDoctors.length === 0}
+          disabled={loading || availableDoctors.length === 0 || !paymentStatus.canBookAppointments}
         >
           {loading ? (
             <div className="flex items-center justify-center space-x-2">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
               <span>Booking...</span>
+            </div>
+          ) : !paymentStatus.canBookAppointments ? (
+            <div className="flex items-center justify-center space-x-2">
+              <span>💳</span>
+              <span>Clear Dues to Book (₹{paymentStatus.pendingAmount})</span>
             </div>
           ) : (
             <div className="flex items-center justify-center space-x-2">
@@ -321,6 +407,15 @@ const AppointmentsPanel = ({ doctors }) => {
             <div className="flex items-center space-x-2 text-yellow-700">
               <span>⚠️</span>
               <span className="font-medium">No doctors available for booking at the moment.</span>
+            </div>
+          </div>
+        )}
+
+        {!paymentStatus.canBookAppointments && (
+          <div className="mt-4 p-4 bg-red-50/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
+            <div className="flex items-center space-x-2 text-red-700">
+              <span>💳</span>
+              <span className="font-medium">Please clear your pending dues (₹{paymentStatus.pendingAmount}) to book new appointments.</span>
             </div>
           </div>
         )}
