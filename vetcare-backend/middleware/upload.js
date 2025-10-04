@@ -9,12 +9,17 @@ const createUploadDirs = () => {
     'uploads/images',
     'uploads/documents',
     'uploads/reports',
-    'uploads/prescriptions'
+    'uploads/prescriptions',
+    'uploads/licenses',
+    'uploads/degrees',
+    'uploads/photos',
+    'uploads/certificates'
   ];
   
   dirs.forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
+      console.log(`✅ Created directory: ${dir}`);
     }
   });
 };
@@ -27,13 +32,28 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let uploadPath = 'uploads/';
     
-    // Determine subdirectory based on file type or request
-    if (file.mimetype.startsWith('image/')) {
+    // Determine subdirectory based on field name or file type
+    if (file.fieldname === 'license') {
+      uploadPath += 'licenses/';
+    } else if (file.fieldname === 'degree') {
+      uploadPath += 'degrees/';
+    } else if (file.fieldname === 'experience') {
+      uploadPath += 'certificates/';
+    } else if (file.fieldname === 'photo') {
+      uploadPath += 'photos/';
+    } else if (file.fieldname === 'idProof') {
+      uploadPath += 'documents/';
+    } else if (file.mimetype.startsWith('image/')) {
       uploadPath += 'images/';
     } else if (file.mimetype === 'application/pdf') {
       uploadPath += 'documents/';
     } else {
       uploadPath += 'documents/';
+    }
+    
+    // Ensure directory exists
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
     }
     
     cb(null, uploadPath);
@@ -87,5 +107,13 @@ module.exports = {
   fields: upload.fields([
     { name: 'images', maxCount: 3 },
     { name: 'documents', maxCount: 2 }
+  ]),
+  // Doctor verification documents
+  doctorDocuments: upload.fields([
+    { name: 'license', maxCount: 1 },
+    { name: 'degree', maxCount: 1 },
+    { name: 'experience', maxCount: 1 },
+    { name: 'photo', maxCount: 1 },
+    { name: 'idProof', maxCount: 1 }
   ])
 };
