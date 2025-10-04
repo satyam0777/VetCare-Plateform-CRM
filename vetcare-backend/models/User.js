@@ -104,6 +104,28 @@ const userSchema = new mongoose.Schema({
       razorpayPaymentId: String
     }]
   },
+
+  // Payment Status & Restrictions
+  paymentStatus: {
+    hasPendingPayments: { type: Boolean, default: false },
+    unpaidAmount: { type: Number, default: 0 },
+    lastPaymentDate: Date,
+    canBookAppointments: { type: Boolean, default: true },
+    paymentRestrictions: {
+      blocked: { type: Boolean, default: false },
+      blockedReason: String,
+      blockedSince: Date,
+      minimumPaymentRequired: { type: Number, default: 0 }
+    },
+    pendingConsultations: [{
+      appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' },
+      doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
+      amount: Number,
+      dueDate: Date,
+      consultationDate: Date,
+      status: { type: String, enum: ['pending', 'overdue'], default: 'pending' }
+    }]
+  },
   
   // Legacy subscription fields (keeping for backward compatibility)
   subscriptionTier: { 
