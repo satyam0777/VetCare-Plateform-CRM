@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
@@ -41,6 +40,14 @@ router.post("/register", async (req, res) => {
     });
 
     await user.save();
+
+    // Add new user ID to admin's userIds array
+    const Admin = require('../models/Admin');
+    await Admin.findOneAndUpdate(
+      { email: process.env.ADMIN_EMAIL },
+      { $addToSet: { userIds: user._id } },
+      { upsert: true }
+    );
 
     // Create JWT token
     const token = jwt.sign(
