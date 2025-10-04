@@ -183,25 +183,46 @@ const DoctorVerificationPanel = () => {
     }
   };
 
+  const getLocalFilename = (path) => {
+    if (!path) return '';
+    // Remove any folder structure, return only the filename
+    return path.split('\\').pop().split('/').pop();
+  };
+
   const handleDownload = async (path, doctor, type) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/files/${path}`);
-      if (!response.ok) throw new Error('Download failed');
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Preserve original file extension
-      const originalExtension = getFileExtension(path);
-      const filename = `${doctor.name}_${type}${originalExtension ? '.' + originalExtension : ''}`;
-      link.download = filename;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // If path is a Cloudinary URL, download directly
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        const response = await fetch(path);
+        if (!response.ok) throw new Error('Download failed');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const originalExtension = getFileExtension(path);
+        const filename = `${doctor.name}_${type}${originalExtension ? '.' + originalExtension : ''}`;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Otherwise, fallback to local API route, always use just the filename
+        const filenameOnly = getLocalFilename(path);
+        const response = await fetch(`http://localhost:5000/api/files/${filenameOnly}`);
+        if (!response.ok) throw new Error('Download failed');
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const originalExtension = getFileExtension(path);
+        const filename = `${doctor.name}_${type}${originalExtension ? '.' + originalExtension : ''}`;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
     } catch (error) {
       console.error('Download error:', error);
       alert('Failed to download file');
@@ -222,7 +243,14 @@ const DoctorVerificationPanel = () => {
             </div>
             <div className="flex space-x-2">
               <button
-                onClick={() => window.open(`http://localhost:5000/api/files/${path}`, '_blank')}
+                onClick={() => {
+                  if (path.startsWith('http://') || path.startsWith('https://')) {
+                    window.open(path, '_blank');
+                  } else {
+                    const filenameOnly = getLocalFilename(path);
+                    window.open(`http://localhost:5000/api/files/${filenameOnly}`, '_blank');
+                  }
+                }}
                 className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm"
                 title="View Document"
               >
