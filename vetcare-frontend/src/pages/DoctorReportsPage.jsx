@@ -32,7 +32,7 @@ const DoctorReportsPage = () => {
 
         {/* Reports Panel */}
         <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-lg p-8 border border-white/30">
-          <ReportsPanel />
+          <ReportsPanel doctorLink={link} />
         </div>
       </div>
     </section>
