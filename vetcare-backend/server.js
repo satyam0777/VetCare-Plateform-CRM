@@ -222,6 +222,15 @@ app.use('/api/doctor-access', doctorAccessRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/files', filesRoutes); // File serving for uploaded documents
 
+// Document Management Routes (NEW - Cloud Storage)
+try {
+  const documentRoutes = require('./routes/documents');
+  app.use('/api/documents', documentRoutes);
+  console.log('✅ Document Management routes loaded');
+} catch (error) {
+  console.log('⚠️  Document Management routes error:', error.message);
+}
+
 // ===== STARTUP-READY FEATURES =====
 // Doctor Verification System (IMMEDIATE NEED)
 try {
