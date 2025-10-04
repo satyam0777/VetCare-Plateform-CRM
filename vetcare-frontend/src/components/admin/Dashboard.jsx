@@ -5,6 +5,7 @@ import AppointmentsOverviewPanel from './AppointmentsOverviewPanel';
 import SubscriptionPanel from './SubscriptionPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import AdminNotificationPanel from './AdminNotificationPanel';
+import DoctorVerificationPanel from './DoctorVerificationPanel';
 
 const Dashboard = () => {
   const [modal, setModal] = useState('');
@@ -83,7 +84,7 @@ const Dashboard = () => {
       </div>
 
       {/* Admin Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <div className="bg-gradient-to-br from-purple-50/90 to-purple-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-purple-100/50" onClick={() => handleModalOpen('doctor')}>
           <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">🧑‍⚕️</div>
           <span className="font-bold text-lg text-gray-900 mb-2">Doctor Management</span>
@@ -94,6 +95,12 @@ const Dashboard = () => {
           <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">📅</div>
           <span className="font-bold text-lg text-gray-900 mb-2">Appointments Overview</span>
           <span className="text-sm text-gray-600 text-center">Monitor all platform appointments and schedules</span>
+        </div>
+
+        <div className="bg-gradient-to-br from-red-50/90 to-red-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-red-100/50" onClick={() => handleModalOpen('verification')}>
+          <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">📋</div>
+          <span className="font-bold text-lg text-gray-900 mb-2">Document Verification</span>
+          <span className="text-sm text-gray-600 text-center">Review and verify doctor applications</span>
         </div>
 
         <div className="bg-gradient-to-br from-emerald-50/90 to-emerald-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-emerald-100/50" onClick={() => handleModalOpen('subscription')}>
@@ -143,6 +150,7 @@ const Dashboard = () => {
             <div className="p-6 pt-16">
               {modal === 'doctor' && <DoctorManagementPanel />}
               {modal === 'appointments' && <AppointmentsOverviewPanel />}
+              {modal === 'verification' && <DoctorVerificationPanel />}
               {modal === 'subscription' && <SubscriptionPanel />}
               {modal === 'analytics' && <AnalyticsPanel />}
               {modal === 'notifications' && <AdminNotificationPanel onClose={handleModalClose} />}
