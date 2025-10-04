@@ -397,16 +397,8 @@ const PORT = process.env.PORT || 5000;
 // ✅ Add better error handling for port conflicts
 server.on('error', (error) => {
   if (error.code === 'EADDRINUSE') {
-    console.log(`❌ Port ${PORT} is already in use!`);
-    console.log(`🔧 Attempting to find alternative port...`);
-    
-    // Try alternative port
-    const altPort = PORT + 1;
-    server.listen(altPort, () => {
-      console.log(`🚀 VetCare server running on alternative port ${altPort}`);
-      console.log(`📡 Socket.IO server ready for real-time communication`);
-      console.log(`🔗 Frontend URL: http://localhost:5173`);
-    });
+    console.error(`❌ Port ${PORT} is already in use! Please stop the process using this port and try again.`);
+    process.exit(1);
   } else {
     console.error('❌ Server error:', error);
     process.exit(1);
