@@ -6,9 +6,12 @@ import SubscriptionPanel from './SubscriptionPanel';
 import AnalyticsPanel from './AnalyticsPanel';
 import AdminNotificationPanel from './AdminNotificationPanel';
 import DoctorVerificationPanel from './DoctorVerificationPanel';
+import UserListPanel from './UserListPanel';
+import UserDetailPanel from './UserDetailPanel';
 
 const Dashboard = () => {
   const [modal, setModal] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
   const navigate = useNavigate();
 
   const handleModalOpen = (modalType) => {
@@ -114,6 +117,12 @@ const Dashboard = () => {
           <span className="font-bold text-lg text-gray-900 mb-2">Analytics</span>
           <span className="text-sm text-gray-600 text-center">View platform insights and performance metrics</span>
         </div>
+
+        <div className="bg-gradient-to-br from-yellow-50/90 to-yellow-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-yellow-100/50" onClick={() => handleModalOpen('users')}>
+          <div className="w-16 h-16 bg-yellow-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">👥</div>
+          <span className="font-bold text-lg text-gray-900 mb-2">User Management</span>
+          <span className="text-sm text-gray-600 text-center">View and manage all users</span>
+        </div>
       </div>
 
       {/* Notification Management */}
@@ -154,6 +163,12 @@ const Dashboard = () => {
               {modal === 'subscription' && <SubscriptionPanel />}
               {modal === 'analytics' && <AnalyticsPanel />}
               {modal === 'notifications' && <AdminNotificationPanel onClose={handleModalClose} />}
+              {modal === 'users' && (
+                <>
+                  <UserListPanel onSelectUser={setSelectedUser} />
+                  {selectedUser && <UserDetailPanel user={selectedUser} onClose={() => setSelectedUser(null)} />}
+                </>
+              )}
             </div>
           </div>
         </div>
