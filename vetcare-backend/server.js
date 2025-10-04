@@ -26,6 +26,7 @@ const otpRoutes = require('./routes/otp');
 const reportsRoutes = require('./routes/reports'); // New reports system
 const doctorAccessRoutes = require('./routes/doctorAccess');
 const subscriptionRoutes = require('./routes/subscription');
+const filesRoutes = require('./routes/files'); // File serving for documents
 
 // Import upload middleware
 const upload = require('./middleware/upload');
@@ -219,8 +220,27 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/reports', reportsRoutes); // New reports system
 app.use('/api/doctor-access', doctorAccessRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/files', filesRoutes); // File serving for uploaded documents
 
 // ===== STARTUP-READY FEATURES =====
+// Doctor Verification System (IMMEDIATE NEED)
+try {
+  const doctorVerificationRoutes = require('./routes/doctor-verification');
+  app.use('/api/doctor-verification', doctorVerificationRoutes);
+  console.log('✅ Doctor Verification routes loaded');
+} catch (error) {
+  console.log('⚠️  Doctor Verification routes error:', error.message);
+}
+
+// Earnings & Commission Tracking (REVENUE CRITICAL)
+try {
+  const earningsRoutes = require('./routes/earnings');
+  app.use('/api/earnings', earningsRoutes);
+  console.log('✅ Earnings & Commission routes loaded');
+} catch (error) {
+  console.log('⚠️  Earnings routes error:', error.message);
+}
+
 // Payment Gateway Integration (Razorpay)
 try {
   const paymentsRoutes = require('./routes/payments');
