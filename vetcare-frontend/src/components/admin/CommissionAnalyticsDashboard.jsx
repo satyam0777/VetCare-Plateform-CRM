@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fi';
 
 const CommissionAnalyticsDashboard = () => {
+
   const [analytics, setAnalytics] = useState({
     totalRevenue: 0,
     platformCommission: 0,
@@ -21,51 +22,31 @@ const CommissionAnalyticsDashboard = () => {
     topDoctors: [],
     recentTransactions: []
   });
-  
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('this_month');
   const [doctorFilter, setDoctorFilter] = useState('all');
 
   useEffect(() => {
     fetchAnalytics();
-  }, [dateRange, doctorFilter]);
+    // eslint-disable-next-line
+  }, []);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
-      // For demo, using mock data
-      const mockData = {
-        totalRevenue: 125000,
-        platformCommission: 18750, // 15% of total
-        doctorEarnings: 106250, // 85% of total
-        totalConsultations: 347,
-        avgConsultationFee: 360,
-        monthlyData: [
-          { month: 'Jan', revenue: 12000, consultations: 45 },
-          { month: 'Feb', revenue: 15000, consultations: 52 },
-          { month: 'Mar', revenue: 18000, consultations: 61 },
-          { month: 'Apr', revenue: 22000, consultations: 73 },
-          { month: 'May', revenue: 25000, consultations: 84 },
-          { month: 'Jun', revenue: 33000, consultations: 92 }
-        ],
-        topDoctors: [
-          { name: 'Dr. Rajesh Sharma', earnings: 15750, consultations: 63, rating: 4.8 },
-          { name: 'Dr. Priya Singh', earnings: 12250, consultations: 49, rating: 4.9 },
-          { name: 'Dr. Amit Patel', earnings: 9500, consultations: 38, rating: 4.7 },
-          { name: 'Dr. Sneha Gupta', earnings: 8750, consultations: 35, rating: 4.6 },
-          { name: 'Dr. Vikram Kumar', earnings: 7250, consultations: 29, rating: 4.5 }
-        ],
-        recentTransactions: [
-          { id: 1, doctor: 'Dr. Rajesh Sharma', amount: 425, commission: 64, date: '2024-01-15', type: 'consultation' },
-          { id: 2, doctor: 'Dr. Priya Singh', amount: 350, commission: 53, date: '2024-01-15', type: 'consultation' },
-          { id: 3, doctor: 'Dr. Amit Patel', amount: 400, commission: 60, date: '2024-01-14', type: 'consultation' },
-          { id: 4, doctor: 'Dr. Sneha Gupta', amount: 300, commission: 45, date: '2024-01-14', type: 'consultation' },
-          { id: 5, doctor: 'Dr. Vikram Kumar', amount: 375, commission: 56, date: '2024-01-13', type: 'consultation' }
-        ]
-      };
-      
-      setAnalytics(mockData);
+      const api = (await import('../../utils/api')).default;
+      const res = await api.get('/admin/revenue-analytics');
+      const data = res.data;
+      setAnalytics({
+        totalRevenue: data.totalRevenue || 0,
+        platformCommission: data.totalCommission || 0,
+        doctorEarnings: data.totalDoctorEarnings || 0,
+        totalConsultations: data.recentTransactions.length || 0,
+        avgConsultationFee: data.totalRevenue && data.recentTransactions.length ? Math.round(data.totalRevenue / data.recentTransactions.length) : 0,
+        monthlyData: [], // (Optional: implement monthly trend if needed)
+        topDoctors: data.topDoctors || [],
+        recentTransactions: data.recentTransactions || []
+      });
       setLoading(false);
     } catch (error) {
       console.error('Error fetching analytics:', error);
