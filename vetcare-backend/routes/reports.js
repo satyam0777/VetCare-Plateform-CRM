@@ -75,6 +75,34 @@ router.get('/doctor', auth, async (req, res) => {
   }
 });
 
+// Get all reports for a specific doctor by doctor ID (for frontend)
+router.get('/doctor/:doctorId', async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+    
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ message: 'Invalid doctor ID format' });
+    }
+    
+    const reports = await Report.find({ doctor: doctorId })
+      .populate('farmer', 'name email phone')
+      .populate('doctor', 'name specialization email')
+      .populate('animal', 'name type age')
+      .populate('appointment', 'date time reason petName')
+      .sort({ createdAt: -1 });
+    
+    console.log(`✅ Found ${reports.length} reports for doctor ${doctorId}`);
+    res.json(reports);
+  } catch (error) {
+    console.error('❌ Error fetching doctor reports:', error);
+    res.status(500).json({ 
+      message: 'Error fetching doctor reports', 
+      error: error.message 
+    });
+  }
+});
+
 // Helper function for PDF rectangles
 function drawRoundedRect(doc, x, y, width, height, radius, fillColor, borderColor) {
   if (fillColor) {
@@ -115,8 +143,20 @@ router.get('/:id/download', flexibleAuth, async (req, res) => {
       if (report.farmer && report.farmer._id.toString() !== req.user.toString()) {
         return res.status(403).json({ message: 'Access denied. You can only download your own reports.' });
       }
+      
+      // ✅ Allow download regardless of payment status for now (for testing)
+      // TODO: Re-enable payment check in production
+      // if (!report.reportAccessible || report.paymentStatus !== 'paid') {
+      //   return res.status(402).json({ 
+      //     message: 'Payment required to access this report',
+      //     paymentRequired: true,
+      //     reportId: report._id,
+      //     amount: report.cost?.total || 500,
+      //     paymentStatus: report.paymentStatus
+      //   });
+      // }
     }
-    // Doctors and admins can download any report (no additional check needed)
+    // Doctors and admins can download any report without payment (no additional check needed)
 
     // ✅ Enhanced debug logging to see raw IDs
     console.log('📊 Report data check:', {
@@ -362,6 +402,225 @@ router.get('/:id/download', flexibleAuth, async (req, res) => {
       message: 'Error generating PDF report', 
       error: error.message 
     });
+  }
+});
+
+// Get doctor analytics with revenue
+router.get('/doctor/:doctorId/analytics', auth, async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const { month, year } = req.query;
+    
+    console.log(`📊 Fetching analytics for doctor: ${doctorId}`, { month, year });
+    
+    let dateFilter = {};
+    
+    // If month and year are specified, filter for that specific month
+    if (month && year) {
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(month), 1);
+      dateFilter = {
+        createdAt: {
+          $gte: startDate,
+          $lt: endDate
+        }
+      };
+      console.log(`📅 Filtering for ${year}-${month}:`, { startDate, endDate });
+    }
+    
+    // Get all reports for the doctor (with optional date filter)
+    const reports = await Report.find({ 
+      doctor: doctorId,
+      ...dateFilter 
+    })
+      .populate('animal', 'name type')
+      .populate('appointment', 'consultationFee status')
+      .sort({ createdAt: -1 });
+    
+    // Get current date for monthly calculations
+    const now = new Date();
+    const currentYear = parseInt(year) || now.getFullYear();
+    const currentMonth = parseInt(month) ? parseInt(month) - 1 : now.getMonth();
+    
+    // Calculate basic metrics
+    const totalConsultations = reports.length;
+    const uniquePatients = [...new Set(reports.map(r => r.animal?._id?.toString()))].length;
+    
+    // Calculate success rate (successful treatments)
+    const successfulTreatments = reports.filter(r => 
+      r.clinicalNote && (
+        r.clinicalNote.toLowerCase().includes('recovered') ||
+        r.clinicalNote.toLowerCase().includes('successful') ||
+        r.clinicalNote.toLowerCase().includes('cured') ||
+        r.clinicalNote.toLowerCase().includes('healed')
+      )
+    ).length;
+    const treatmentSuccess = totalConsultations > 0 ? Math.round((successfulTreatments / totalConsultations) * 100) : 0;
+    
+    // Calculate total revenue
+    const totalRevenue = reports.reduce((sum, report) => {
+      const fee = report.appointment?.consultationFee || 500; // Default fee if not set
+      return sum + fee;
+    }, 0);
+    
+    // If filtering by month, also get comparison with previous month
+    let previousMonthData = null;
+    if (month && year) {
+      const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      const prevStartDate = new Date(prevYear, prevMonth, 1);
+      const prevEndDate = new Date(currentYear, currentMonth, 1);
+      
+      const prevReports = await Report.find({ 
+        doctor: doctorId,
+        createdAt: {
+          $gte: prevStartDate,
+          $lt: prevEndDate
+        }
+      }).populate('appointment', 'consultationFee');
+      
+      previousMonthData = {
+        consultations: prevReports.length,
+        patients: [...new Set(prevReports.map(r => r.animal?._id?.toString()))].length,
+        revenue: prevReports.reduce((sum, report) => {
+          const fee = report.appointment?.consultationFee || 500;
+          return sum + fee;
+        }, 0)
+      };
+    }
+    
+    // Calculate monthly stats (if not filtering by specific month, show last 6 months)
+    const monthlyStats = [];
+    if (!month || !year) {
+      for (let i = 5; i >= 0; i--) {
+        const targetDate = new Date(currentYear, currentMonth - i, 1);
+        const nextMonth = new Date(currentYear, currentMonth - i + 1, 1);
+        
+        const monthReports = await Report.find({
+          doctor: doctorId,
+          createdAt: {
+            $gte: targetDate,
+            $lt: nextMonth
+          }
+        }).populate('appointment', 'consultationFee');
+        
+        const monthConsultations = monthReports.length;
+        const monthPatients = [...new Set(monthReports.map(r => r.animal?._id?.toString()))].length;
+        const monthRevenue = monthReports.reduce((sum, report) => {
+          const fee = report.appointment?.consultationFee || 500;
+          return sum + fee;
+        }, 0);
+        
+        monthlyStats.push({
+          month: targetDate.toLocaleDateString('en-US', { month: 'short' }),
+          consultations: monthConsultations,
+          patients: monthPatients,
+          revenue: monthRevenue
+        });
+      }
+    }
+    
+    // Calculate common diseases
+    const diseaseCount = {};
+    reports.forEach(report => {
+      if (report.diagnosis) {
+        const disease = report.diagnosis.toLowerCase();
+        diseaseCount[disease] = (diseaseCount[disease] || 0) + 1;
+      }
+    });
+    
+    const commonDiseases = Object.entries(diseaseCount)
+      .map(([disease, count]) => ({ disease, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+    
+    // Calculate average consultation time (dummy for now, can be enhanced with actual time tracking)
+    const avgConsultationTime = 25;
+    
+    const analytics = {
+      totalConsultations,
+      totalPatients: uniquePatients,
+      treatmentSuccess,
+      avgConsultationTime,
+      totalRevenue,
+      monthlyRevenue: totalRevenue, // For specific month, this is the total for that month
+      monthlyStats,
+      commonDiseases,
+      previousMonthData,
+      selectedPeriod: month && year ? `${year}-${month.padStart(2, '0')}` : 'all-time',
+      growthPercentage: previousMonthData ? 
+        Math.round(((totalConsultations - previousMonthData.consultations) / Math.max(previousMonthData.consultations, 1)) * 100) : 0,
+      revenueGrowth: previousMonthData ? 
+        Math.round(((totalRevenue - previousMonthData.revenue) / Math.max(previousMonthData.revenue, 1)) * 100) : 0
+    };
+    
+    console.log(`✅ Analytics calculated for doctor ${doctorId}:`, {
+      period: analytics.selectedPeriod,
+      consultations: totalConsultations,
+      patients: uniquePatients,
+      revenue: totalRevenue,
+      growth: analytics.growthPercentage
+    });
+    
+    res.json({
+      success: true,
+      analytics
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching doctor analytics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch analytics',
+      error: error.message
+    });
+  }
+});
+
+// Update clinical note for a report
+router.put('/:reportId/clinical-note', flexibleAuth, async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const { clinicalNote } = req.body;
+    
+    console.log(`📝 Updating clinical note for report: ${reportId}`);
+    console.log(`👤 Authenticated user:`, req.user);
+    console.log(`👤 User role:`, req.userRole);
+    console.log(`� User object:`, req.userObj);
+    console.log(`�📋 Clinical note data:`, clinicalNote);
+    
+    // Validate authentication
+    if (!req.user) {
+      console.error('❌ No authenticated user found');
+      return res.status(401).json({ message: 'User authentication failed' });
+    }
+    
+    const report = await Report.findByIdAndUpdate(
+      reportId,
+      { 
+        $set: { 
+          clinicalNote: {
+            ...clinicalNote,
+            addedAt: new Date(),
+            addedBy: req.user // req.user is already the user ID
+          }
+        }
+      },
+      { new: true }
+    ).populate('farmer', 'name email phone')
+     .populate('animal', 'name species breed age')
+     .populate('doctor', 'name');
+    
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    
+    console.log('✅ Clinical note updated successfully');
+    console.log('📋 Updated clinical note:', report.clinicalNote);
+    res.json(report);
+  } catch (error) {
+    console.error('❌ Error updating clinical note:', error);
+    res.status(500).json({ message: 'Error updating clinical note', error: error.message });
   }
 });
 
