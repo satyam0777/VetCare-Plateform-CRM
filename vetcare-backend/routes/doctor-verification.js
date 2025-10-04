@@ -1,41 +1,25 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
+const { createUploadMiddleware } = require('../services/cloudStorageService');
 const Doctor = require('../models/Doctor');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const { auth } = require('../middleware/authMiddleware');
 const router = express.Router();
 
-// Configure multer for document uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/doctor-documents/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `${req.body.doctorId}-${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image and PDF files are allowed'), false);
-    }
-  }
-});
+// Use Cloudinary upload middleware for doctor documents
+const upload = createUploadMiddleware('cloudinary');
 
 // Doctor application with documents
 router.post('/apply', upload.fields([
   { name: 'license', maxCount: 1 },
   { name: 'degree', maxCount: 1 },
   { name: 'experience', maxCount: 1 },
-  { name: 'photo', maxCount: 1 }
+  { name: 'photo', maxCount: 1 },
+  { name: 'idProof', maxCount: 1 }
 ]), async (req, res) => {
   try {
+    console.log('--- Doctor Verification Upload Debug ---');
+    console.log('req.body:', req.body);
+    console.log('req.files:', req.files);
     const {
       name, email, phone, specialization, experience,
       licenseNumber, qualification, clinicAddress,
@@ -48,13 +32,15 @@ router.post('/apply', upload.fields([
       return res.status(400).json({ message: 'Doctor with this email already exists' });
     }
 
-    // Prepare document paths
+
+    // Prepare Cloudinary URLs for documents
     const documents = {};
     if (req.files) {
-      if (req.files.license) documents.license = req.files.license[0].path;
-      if (req.files.degree) documents.degree = req.files.degree[0].path;
-      if (req.files.experience) documents.experience = req.files.experience[0].path;
-      if (req.files.photo) documents.photo = req.files.photo[0].path;
+      if (req.files.license) documents.license = req.files.license[0].path || req.files.license[0].url;
+      if (req.files.degree) documents.degree = req.files.degree[0].path || req.files.degree[0].url;
+      if (req.files.experience) documents.experience = req.files.experience[0].path || req.files.experience[0].url;
+      if (req.files.photo) documents.photo = req.files.photo[0].path || req.files.photo[0].url;
+      if (req.files.idProof) documents.idProof = req.files.idProof[0].path || req.files.idProof[0].url;
     }
 
     // Create doctor with pending status
@@ -99,7 +85,7 @@ router.post('/apply', upload.fields([
 });
 
 // Get pending doctor applications (Admin only)
-router.get('/pending', authMiddleware, async (req, res) => {
+router.get('/pending', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' });
@@ -116,7 +102,7 @@ router.get('/pending', authMiddleware, async (req, res) => {
 });
 
 // Verify/Reject doctor (Admin only)
-router.put('/verify/:doctorId', authMiddleware, async (req, res) => {
+router.put('/verify/:doctorId', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' });
