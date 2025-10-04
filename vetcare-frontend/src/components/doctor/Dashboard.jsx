@@ -4,6 +4,7 @@ import AppointmentsPanel from './AppointmentsPanel';
 import PatientDetailsPanel from './PatientDetailsPanel';
 import ConsultationPanel from './ConsultationPanel';
 import ReportsPanel from './ReportsPanel';
+import BankingPanel from './BankingPanel';
 import DoctorProfileSection from './DoctorProfileSection';
 import DoctorProfile from './DoctorProfile';
 import DoctorNotificationPanel from './DoctorNotificationPanel';
@@ -84,7 +85,7 @@ const Dashboard = () => {
       </div>
 
       {/* Doctor Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <div className="bg-gradient-to-br from-emerald-50/90 to-emerald-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-emerald-100/50" onClick={() => setModal('appointments')}>
           <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">📅</div>
           <span className="font-bold text-lg text-gray-900 mb-2">Appointments</span>
@@ -107,6 +108,12 @@ const Dashboard = () => {
           <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">📊</div>
           <span className="font-bold text-lg text-gray-900 mb-2">Reports & Analytics</span>
           <span className="text-sm text-gray-600 text-center">Track your practice performance and insights</span>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50/90 to-green-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-green-100/50" onClick={() => setModal('banking')}>
+          <div className="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">🏦</div>
+          <span className="font-bold text-lg text-gray-900 mb-2">Banking & Earnings</span>
+          <span className="text-sm text-gray-600 text-center">Manage payouts and view earnings</span>
         </div>
       </div>
 
@@ -145,7 +152,8 @@ const Dashboard = () => {
               {modal === 'appointments' && <AppointmentsPanel doctorLink={link} />}
               {modal === 'patient' && <PatientDetailsPanel />}
               {modal === 'consultation' && <ConsultationPanel />}
-              {modal === 'reports' && <ReportsPanel />}
+              {modal === 'reports' && <ReportsPanel doctorLink={link} />}
+              {modal === 'banking' && <BankingPanel />}
               {modal === 'notifications' && <DoctorNotificationPanel doctorId={link} onClose={() => setModal('')} />}
             </div>
           </div>
