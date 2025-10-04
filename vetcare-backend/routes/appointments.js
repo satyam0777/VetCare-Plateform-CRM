@@ -41,32 +41,43 @@ router.post('/', auth, checkPaymentStatus, async (req, res) => {
         error: 'Admin users cannot book appointments' 
       });
     }
-    
     // Validate required fields
     const { doctor, user, petName, reason, date, time } = req.body;
-    
     if (!doctor || !user || !petName || !reason || !date || !time) {
       return res.status(400).json({ 
         error: "All fields are required: doctor, user, petName, reason, date, time" 
       });
     }
-
     // Ensure the user field matches the authenticated user
     if (user !== req.user.toString()) {
       return res.status(403).json({ 
         error: 'You can only book appointments for yourself' 
       });
     }
-
     const appointment = new Appointment({
       ...req.body,
       status: 'pending' // Default status
     });
     const savedAppointment = await appointment.save();
-    
-    // Populate the doctor information for the response
+    // Populate the doctor and user information for the response and emails
     await savedAppointment.populate('doctor', 'name specialization email');
-
+    await savedAppointment.populate('user', 'name email');
+    // Send email to user and doctor (company-style)
+    try {
+      const emailService = require('../services/emailService');
+      await emailService.sendAppointmentBookedEmail({
+        user: savedAppointment.user,
+        doctor: savedAppointment.doctor,
+        appointment: savedAppointment
+      });
+      await emailService.sendAppointmentBookedDoctorEmail({
+        doctor: savedAppointment.doctor,
+        user: savedAppointment.user,
+        appointment: savedAppointment
+      });
+    } catch (emailErr) {
+      console.error('❌ Failed to send appointment emails:', emailErr);
+    }
     console.log("✅ Appointment saved:", savedAppointment);
     res.status(201).json(savedAppointment);
   } catch (err) {
@@ -138,35 +149,47 @@ router.put('/:id/cancel', doctorAuth, async (req, res) => {
 router.put('/:id/consultation', doctorAuth, async (req, res) => {
   try {
     const { consultation, prescription, payment } = req.body;
-    
     const updateData = {};
-    
     if (consultation) {
       updateData.consultation = consultation;
     }
-    
     if (prescription) {
       updateData.prescription = {
         ...prescription,
         prescribedAt: new Date()
       };
     }
-    
     if (payment) {
       updateData.payment = payment;
     }
-
     const appointment = await Appointment.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true }
     ).populate('doctor', 'name specialization email')
      .populate('user', 'name email petName');
-
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-
+    // Send consultation started emails to user and doctor
+    try {
+      const emailService = require('../services/emailService');
+      console.log('[DEBUG] Attempting to send consultation started email to user:', appointment.user?.email);
+      const userEmailResult = await emailService.sendConsultationStartedEmail({
+        user: appointment.user,
+        doctor: appointment.doctor,
+        appointment
+      });
+      console.log('[DEBUG] sendConsultationStartedEmail result:', userEmailResult);
+      const doctorEmailResult = await emailService.sendConsultationStartedDoctorEmail({
+        doctor: appointment.doctor,
+        user: appointment.user,
+        appointment
+      });
+      console.log('[DEBUG] sendConsultationStartedDoctorEmail result:', doctorEmailResult);
+    } catch (emailErr) {
+      console.error('❌ Failed to send consultation started emails:', emailErr);
+    }
     console.log(`✅ Consultation details added to appointment ${req.params.id}`);
     res.json(appointment);
   } catch (err) {
@@ -336,6 +359,24 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
       console.log(`⚠️ Failed to send notification:`, notifError.message);
     }
 
+    // Send consultation completed emails to user and doctor
+    try {
+      const emailService = require('../services/emailService');
+      await emailService.sendConsultationCompletedEmail({
+        user: appointment.user,
+        doctor: appointment.doctor,
+        appointment,
+        report
+      });
+      await emailService.sendConsultationCompletedDoctorEmail({
+        doctor: appointment.doctor,
+        user: appointment.user,
+        appointment,
+        report
+      });
+    } catch (emailErr) {
+      console.error('❌ Failed to send consultation completed emails:', emailErr);
+    }
     console.log(`✅ Appointment ${req.params.id} completed with report - waiting for payment`);
     res.json({ 
       appointment, 
