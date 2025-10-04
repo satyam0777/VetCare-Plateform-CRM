@@ -556,25 +556,36 @@ async function sendConsultationStartedEmail({ user, doctor, appointment }) {
                 return { success: true, message: 'Email logged (fallback mode)' };
         }
         try {
-                const mailOptions = {
-                        from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
-                        to: user.email,
-                        subject: `🩺 Consultation Started - Dr. ${doctor.name}`,
-                        html: `
-                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
-                                    <div style="background:linear-gradient(135deg,#0ea5e9 0%,#16a34a 100%);padding:32px 24px;text-align:center;color:#fff;">
-                                        <h2 style="margin-bottom:8px;">Consultation Started</h2>
-                                        <div style="font-size:18px;">with Dr. ${doctor.name}</div>
-                                    </div>
-                                    <div style="padding:32px 24px;">
-                                        <p>Dear ${user.name},</p>
-                                        <p>Your consultation for <b>${appointment.petName}</b> has started with Dr. ${doctor.name}.</p>
-                                        <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">Please join the video call using your dashboard.</div>
-                                    </div>
-                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
-                                </div>
-                        `
-                };
+                // Video call link (uses FRONTEND_URL from environment)
+                const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+                const videoCallUrl = `${baseUrl.replace(/\/$/, '')}/video-call/${appointment._id}`;
+                        const mailOptions = {
+                                from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
+                                to: user.email,
+                                subject: `🩺 Consultation Started - Dr. ${doctor.name}`,
+                                html: `
+                                        <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                            <div style="background:linear-gradient(135deg,#0ea5e9 0%,#16a34a 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                                <h2 style="margin-bottom:8px;">Consultation Started</h2>
+                                                <div style="font-size:18px;">with Dr. ${doctor.name}</div>
+                                            </div>
+                                            <div style="padding:32px 24px;">
+                                                <p>Dear ${user.name},</p>
+                                                <p>Your consultation for <b>${appointment.petName}</b> has started with Dr. ${doctor.name}.</p>
+                                                <div style="margin:18px 0 24px 0;">
+                                                    <a href="${videoCallUrl}" style="display:inline-block;background:linear-gradient(135deg,#16a34a 0%,#0ea5e9 100%);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:16px;box-shadow:0 2px 8px #05966933;">🔗 Join Video Call</a>
+                                                </div>
+                                                <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">
+                                                    <b>How it works:</b> Just click the link above to join your video call on VetCare. No Zoom or Google Meet required—everything happens securely on our platform.<br/>
+                                                    If you have any trouble joining, you can also contact your doctor directly:<br/>
+                                                    <b>Email:</b> <a href="mailto:${doctor.email}">${doctor.email}</a><br/>
+                                                    <b>Mobile:</b> <a href="tel:${doctor.mobile}">${doctor.mobile || '-'}</a>
+                                                </div>
+                                            </div>
+                                            <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                        </div>
+                                `
+                        };
                 const result = await transporter.sendMail(mailOptions);
                 console.log('✅ Consultation started email sent:', result.messageId);
                 return { success: true, messageId: result.messageId };
