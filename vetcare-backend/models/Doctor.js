@@ -23,6 +23,43 @@ const doctorSchema = new mongoose.Schema({
     end: { type: String, default: '18:00' }
   },
   
+  // ===== STARTUP-CRITICAL VERIFICATION SYSTEM =====
+  verificationStatus: { 
+    type: String, 
+    enum: ['pending', 'under_review', 'approved', 'rejected', 'suspended'], 
+    default: 'pending' 
+  },
+  verificationDate: Date,
+  verificationNotes: String,
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  
+  // Document Management for Real Doctors
+  documents: {
+    license: String,        // License document file path
+    degree: String,         // Degree certificate file path
+    experience: String,     // Experience certificate file path
+    photo: String,          // Professional photo file path
+    idProof: String,        // Government ID file path
+    clinicPhoto: String     // Clinic photo file path
+  },
+  
+  documentsUploaded: {
+    license: { type: Boolean, default: false },
+    degree: { type: Boolean, default: false },
+    experience: { type: Boolean, default: false },
+    photo: { type: Boolean, default: false },
+    idProof: { type: Boolean, default: false }
+  },
+  
+  // Profile Completeness for Onboarding
+  profileCompleteness: { type: Number, default: 0, min: 0, max: 100 },
+  
+  // Professional Credentials
+  qualification: String,
+  registrationNumber: String,  // Veterinary council registration
+  councilName: String,         // Which veterinary council
+  consultationFee: { type: Number, default: 0 },
+  
   // Approval Status
   approved: { type: Boolean, default: false },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -87,8 +124,9 @@ const doctorSchema = new mongoose.Schema({
   totalConsultations: { type: Number, default: 0 },
   completedConsultations: { type: Number, default: 0 },
   
-  // Unique Access
+  // Unique Access (UNCHANGED - Your current system works)
   uniqueAccessLink: { type: String, unique: true, sparse: true },
+  uniqueLink: { type: String, unique: true, sparse: true }, // Keep both for compatibility
   
   // Profile Image
   profileImage: String,
