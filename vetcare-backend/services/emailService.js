@@ -469,10 +469,268 @@ async function sendDoctorRemovalEmail(doctorData, reason) {
     return { success: true, message: 'Removal email logged (fallback mode)' };
 }
 
+// ================== NEW: Appointment & Consultation Emails ==================
+
+async function sendAppointmentBookedEmail({ user, doctor, appointment }) {
+        if (!transporter) {
+                console.log('⚠️ Email not sent - transporter unavailable');
+                return { success: true, message: 'Email logged (fallback mode)' };
+        }
+        try {
+                const mailOptions = {
+                        from: `"VetCare Appointments" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>`,
+                        to: user.email,
+                        subject: `📅 Appointment Booked - VetCare with Dr. ${doctor.name}`,
+                        html: `
+                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#2563eb 0%,#059669 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                        <h2 style="margin-bottom:8px;">Appointment Booked! ✅</h2>
+                                        <div style="font-size:18px;">with Dr. ${doctor.name}</div>
+                                    </div>
+                                    <div style="padding:32px 24px;">
+                                        <p>Dear ${user.name},</p>
+                                        <p>Your appointment has been successfully booked with <b>Dr. ${doctor.name}</b> for <b>${appointment.petName}</b>.</p>
+                                        <ul style="margin:18px 0 24px 0;padding:0;list-style:none;">
+                                            <li><b>Date:</b> ${appointment.date}</li>
+                                            <li><b>Time:</b> ${appointment.time}</li>
+                                            <li><b>Reason:</b> ${appointment.reason}</li>
+                                        </ul>
+                                        <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">Please be ready 5 minutes before your scheduled time.</div>
+                                        <p style="color:#64748b;font-size:13px;">For any queries, contact us at <a href="mailto:support@vetcare.com">support@vetcare.com</a></p>
+                                    </div>
+                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                </div>
+                        `
+                };
+                const result = await transporter.sendMail(mailOptions);
+                console.log('✅ Appointment booked email sent:', result.messageId);
+                return { success: true, messageId: result.messageId };
+        } catch (error) {
+                console.log('❌ Appointment booked email failed:', error.message);
+                return { success: false, message: error.message };
+        }
+}
+
+async function sendAppointmentBookedDoctorEmail({ doctor, user, appointment }) {
+        if (!transporter) {
+                console.log('⚠️ Email not sent - transporter unavailable');
+                return { success: true, message: 'Email logged (fallback mode)' };
+        }
+        try {
+                const mailOptions = {
+                        from: `"VetCare Appointments" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>`,
+                        to: doctor.email,
+                        subject: `📅 New Appointment Booked - ${user.name} (${appointment.petName})` ,
+                        html: `
+                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#059669 0%,#2563eb 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                        <h2 style="margin-bottom:8px;">New Appointment Booked</h2>
+                                        <div style="font-size:18px;">with ${user.name} (${appointment.petName})</div>
+                                    </div>
+                                    <div style="padding:32px 24px;">
+                                        <p>Dear Dr. ${doctor.name},</p>
+                                        <p>You have a new appointment booked by <b>${user.name}</b> for <b>${appointment.petName}</b>.</p>
+                                        <ul style="margin:18px 0 24px 0;padding:0;list-style:none;">
+                                            <li><b>Date:</b> ${appointment.date}</li>
+                                            <li><b>Time:</b> ${appointment.time}</li>
+                                            <li><b>Reason:</b> ${appointment.reason}</li>
+                                        </ul>
+                                        <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">Please review the case details in your VetCare dashboard.</div>
+                                    </div>
+                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                </div>
+                        `
+                };
+                const result = await transporter.sendMail(mailOptions);
+                console.log('✅ Appointment booked doctor email sent:', result.messageId);
+                return { success: true, messageId: result.messageId };
+        } catch (error) {
+                console.log('❌ Appointment booked doctor email failed:', error.message);
+                return { success: false, message: error.message };
+        }
+}
+
+async function sendConsultationStartedEmail({ user, doctor, appointment }) {
+        if (!transporter) {
+                console.log('⚠️ Email not sent - transporter unavailable');
+                return { success: true, message: 'Email logged (fallback mode)' };
+        }
+        try {
+                const mailOptions = {
+                        from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
+                        to: user.email,
+                        subject: `🩺 Consultation Started - Dr. ${doctor.name}`,
+                        html: `
+                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#0ea5e9 0%,#16a34a 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                        <h2 style="margin-bottom:8px;">Consultation Started</h2>
+                                        <div style="font-size:18px;">with Dr. ${doctor.name}</div>
+                                    </div>
+                                    <div style="padding:32px 24px;">
+                                        <p>Dear ${user.name},</p>
+                                        <p>Your consultation for <b>${appointment.petName}</b> has started with Dr. ${doctor.name}.</p>
+                                        <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">Please join the video call using your dashboard.</div>
+                                    </div>
+                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                </div>
+                        `
+                };
+                const result = await transporter.sendMail(mailOptions);
+                console.log('✅ Consultation started email sent:', result.messageId);
+                return { success: true, messageId: result.messageId };
+        } catch (error) {
+                console.log('❌ Consultation started email failed:', error.message);
+                return { success: false, message: error.message };
+        }
+}
+
+async function sendConsultationStartedDoctorEmail({ doctor, user, appointment }) {
+        if (!transporter) {
+                console.log('⚠️ Email not sent - transporter unavailable');
+                return { success: true, message: 'Email logged (fallback mode)' };
+        }
+        try {
+                const mailOptions = {
+                        from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
+                        to: doctor.email,
+                        subject: `🩺 Consultation Started - ${user.name} (${appointment.petName})` ,
+                        html: `
+                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#16a34a 0%,#0ea5e9 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                        <h2 style="margin-bottom:8px;">Consultation Started</h2>
+                                        <div style="font-size:18px;">with ${user.name} (${appointment.petName})</div>
+                                    </div>
+                                    <div style="padding:32px 24px;">
+                                        <p>Dear Dr. ${doctor.name},</p>
+                                        <p>Your consultation with <b>${user.name}</b> for <b>${appointment.petName}</b> has started.</p>
+                                    </div>
+                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                </div>
+                        `
+                };
+                const result = await transporter.sendMail(mailOptions);
+                console.log('✅ Consultation started doctor email sent:', result.messageId);
+                return { success: true, messageId: result.messageId };
+        } catch (error) {
+                console.log('❌ Consultation started doctor email failed:', error.message);
+                return { success: false, message: error.message };
+        }
+}
+
+async function sendConsultationCompletedEmail({ user, doctor, appointment, report }) {
+    if (!transporter) {
+        console.log('⚠️ Email not sent - transporter unavailable');
+        return { success: true, message: 'Email logged (fallback mode)' };
+    }
+    try {
+        // Payment details
+        const payment = appointment.payment || {};
+        // Doctor details
+        const doctorDetails = `
+            <div style="margin-bottom:12px;">
+                <b>Dr. ${doctor.name}</b><br/>
+                Specialization: ${doctor.specialization || '-'}<br/>
+                Email: ${doctor.email}<br/>
+                Mobile: ${doctor.mobile || '-'}<br/>
+                ${doctor.clinicAddress ? `Clinic: ${doctor.clinicAddress}<br/>` : ''}
+            </div>
+        `;
+        // Prescription summary
+        const prescriptionHtml = (report?.prescriptions && report.prescriptions.length > 0)
+            ? `<ul style="margin:0 0 12px 0;padding:0 0 0 18px;">
+                ${report.prescriptions.map(med => `<li><b>${med.medicineName}</b> - ${med.dosage || ''} ${med.frequency || ''} ${med.duration || ''} ${med.instructions || ''}</li>`).join('')}
+              </ul>`
+            : '<div style="color:#64748b;">No medicines prescribed.</div>';
+        // Payment breakdown
+        const paymentHtml = `
+            <table style="width:100%;border-collapse:collapse;margin:18px 0 12px 0;">
+                <tr><td style="padding:6px 0;">Consultation Fee:</td><td style="text-align:right;">₹${payment.consultationFee || 0}</td></tr>
+                <tr><td style="padding:6px 0;">Platform Fee:</td><td style="text-align:right;">₹${payment.platformFee || 0}</td></tr>
+                <tr><td style="padding:6px 0;">Total Amount:</td><td style="text-align:right;font-weight:bold;">₹${payment.totalAmount || 0}</td></tr>
+            </table>
+        `;
+        // Main email
+        const mailOptions = {
+            from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
+            to: user.email,
+            subject: `🧾 Treatment Complete - Your VetCare Receipt & Report` ,
+            html: `
+                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:650px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px #0001;">
+                  <div style="background:linear-gradient(135deg,#059669 0%,#f59e42 100%);padding:36px 28px;text-align:center;color:#fff;">
+                    <h2 style="margin-bottom:8px;">Treatment Complete</h2>
+                    <div style="font-size:20px;">Receipt & Medical Report</div>
+                  </div>
+                  <div style="padding:36px 28px;">
+                    <p style="font-size:16px;">Dear ${user.name},</p>
+                    <p>Your consultation for <b>${appointment.petName}</b> with Dr. ${doctor.name} is now complete. Here are your treatment details and payment receipt.</p>
+                    <h3 style="margin:24px 0 8px 0;color:#059669;">Doctor Details</h3>
+                    ${doctorDetails}
+                    <h3 style="margin:24px 0 8px 0;color:#059669;">Consultation Summary</h3>
+                    <div><b>Diagnosis:</b> ${report?.diagnosis || '-'}</div>
+                    <div><b>Treatment:</b> ${report?.treatment || '-'}</div>
+                    <div><b>Recommendations:</b> ${report?.recommendations || '-'}</div>
+                    <div style="margin:12px 0 0 0;"><b>Prescriptions:</b>${prescriptionHtml}</div>
+                    <h3 style="margin:24px 0 8px 0;color:#059669;">Payment Receipt</h3>
+                    ${paymentHtml}
+                    <div style="background:#fef9c3;padding:16px;border-radius:8px;margin:18px 0 0 0;">Thank you for choosing VetCare! If you have questions, reply to this email or contact support.</div>
+                  </div>
+                  <div style="background:#1f2937;color:#d1d5db;padding:20px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                </div>
+            `
+        };
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Consultation completed email sent:', result.messageId);
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.log('❌ Consultation completed email failed:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+async function sendConsultationCompletedDoctorEmail({ doctor, user, appointment, report }) {
+        if (!transporter) {
+                console.log('⚠️ Email not sent - transporter unavailable');
+                return { success: true, message: 'Email logged (fallback mode)' };
+        }
+        try {
+                const mailOptions = {
+                        from: `"VetCare Consultations" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>` ,
+                        to: doctor.email,
+                        subject: `📋 Consultation Completed - ${user.name} (${appointment.petName})` ,
+                        html: `
+                                <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#059669 0%,#f59e42 100%);padding:32px 24px;text-align:center;color:#fff;">
+                                        <h2 style="margin-bottom:8px;">Consultation Completed</h2>
+                                        <div style="font-size:18px;">with ${user.name} (${appointment.petName})</div>
+                                    </div>
+                                    <div style="padding:32px 24px;">
+                                        <p>Dear Dr. ${doctor.name},</p>
+                                        <p>Your consultation with <b>${user.name}</b> for <b>${appointment.petName}</b> is now complete.</p>
+                                        <div style="background:#fef9c3;padding:16px;border-radius:8px;margin-bottom:18px;">The medical report has been generated and payment notification sent to the user.</div>
+                                    </div>
+                                    <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+                                </div>
+                        `
+                };
+                const result = await transporter.sendMail(mailOptions);
+                console.log('✅ Consultation completed doctor email sent:', result.messageId);
+                return { success: true, messageId: result.messageId };
+        } catch (error) {
+                console.log('❌ Consultation completed doctor email failed:', error.message);
+                return { success: false, message: error.message };
+        }
+}
+
 module.exports = {
-    initializeEmailService,
-    generateDoctorAccessLink,
-    sendDoctorApprovalEmail,
-    sendDoctorRejectionEmail,
-    sendDoctorRemovalEmail
+        initializeEmailService,
+        generateDoctorAccessLink,
+        sendDoctorApprovalEmail,
+        sendDoctorRejectionEmail,
+        sendDoctorRemovalEmail,
+        sendAppointmentBookedEmail,
+        sendAppointmentBookedDoctorEmail,
+        sendConsultationStartedEmail,
+        sendConsultationStartedDoctorEmail,
+        sendConsultationCompletedEmail,
+        sendConsultationCompletedDoctorEmail
 };
