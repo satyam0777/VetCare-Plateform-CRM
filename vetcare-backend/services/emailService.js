@@ -61,7 +61,7 @@ async function sendDoctorApprovalEmail(doctorData, accessLink) {
             const mailOptions = {
                 from: `"VetCare Professional Platform" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>`,
                 to: doctorData.email,
-                subject: '� VetCare Account Approved - Welcome to Our Professional Network',
+                subject: ' VetCare Account Approved - Welcome to Our Professional Network',
                 html: `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -221,14 +221,14 @@ async function sendDoctorApprovalEmail(doctorData, accessLink) {
 }
 
 async function sendDoctorRejectionEmail(doctorData, reason) {
-    console.log('📧 Sending rejection email to:', doctorData.email);
+    console.log('📧 Sending professional rejection email to:', doctorData.email);
     
     if (transporter) {
         try {
             const mailOptions = {
                 from: `"VetCare Professional Platform" <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>`,
                 to: doctorData.email,
-                subject: '📋 VetCare Application Update - Additional Information Required',
+                subject: '📋 Application Status Update - VetCare Platform',
                 html: `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -236,50 +236,141 @@ async function sendDoctorRejectionEmail(doctorData, reason) {
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
-                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-                        .container { max-width: 650px; margin: 0 auto; background: #ffffff; }
-                        .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 30px; text-align: center; color: white; }
-                        .content { padding: 40px 30px; }
-                        .status-badge { background: #fef3c7; border: 2px solid #f59e0b; border-radius: 12px; padding: 20px; margin: 25px 0; text-align: center; }
-                        .reapply-section { background: #f0f9ff; border-radius: 12px; padding: 30px; margin: 30px 0; border-left: 4px solid #0ea5e9; }
-                        .footer { background: #1f2937; color: #d1d5db; padding: 30px; text-align: center; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; color: #333; margin: 0; padding: 0; background: #f8fafc; }
+                        .container { max-width: 700px; margin: 0 auto; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 16px; overflow: hidden; }
+                        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; color: white; }
+                        .content { padding: 45px 40px; }
+                        .doctor-badge { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 16px; padding: 25px; margin: 25px 0; text-align: center; border: 2px solid #e2e8f0; }
+                        .feedback-section { background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-radius: 16px; padding: 30px; margin: 25px 0; border-left: 6px solid #e53e3e; box-shadow: 0 4px 12px rgba(229,62,62,0.1); }
+                        .encouragement-section { background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%); border-radius: 16px; padding: 30px; margin: 25px 0; border-left: 6px solid #38a169; box-shadow: 0 4px 12px rgba(56,161,105,0.1); }
+                        .reapply-section { background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%); border-radius: 16px; padding: 30px; margin: 25px 0; border-left: 6px solid #3182ce; box-shadow: 0 4px 12px rgba(49,130,206,0.1); }
+                        .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 30px; font-weight: bold; font-size: 16px; margin: 20px 0; box-shadow: 0 4px 15px rgba(102,126,234,0.3); transition: all 0.3s ease; }
+                        .footer { background: #1a202c; color: #e2e8f0; padding: 40px 30px; text-align: center; }
+                        .steps-list { list-style: none; padding: 0; }
+                        .steps-list li { background: white; margin: 10px 0; padding: 15px 20px; border-radius: 12px; border-left: 4px solid #3182ce; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
-                            <div style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">🏥 VetCare Professional</div>
-                            <div style="font-size: 14px; opacity: 0.9;">Application Review Update</div>
+                            <div style="font-size: 32px; font-weight: bold; margin-bottom: 12px;">🏥 VetCare Platform</div>
+                            <div style="font-size: 16px; opacity: 0.9;">Veterinary Excellence Network</div>
                         </div>
+                        
                         <div class="content">
-                            <div class="status-badge">
-                                <div style="font-size: 24px; color: #92400e; font-weight: bold; margin-bottom: 8px;">Dr. ${doctorData.name}</div>
-                                <div style="color: #b45309;">Application Under Review</div>
+                            <div class="doctor-badge">
+                                <div style="font-size: 28px; color: #2d3748; font-weight: bold; margin-bottom: 8px;">Dr. ${doctorData.name}</div>
+                                <div style="color: #4a5568; font-size: 16px;">Licensed Veterinary Professional</div>
                             </div>
-                            <h2 style="color: #1f2937; margin-bottom: 20px;">📋 Application Update Required</h2>
-                            <p style="margin-bottom: 20px; color: #4b5563; font-size: 16px;">
-                                Thank you for your interest in joining VetCare Professional Platform. After careful review, we need additional information to proceed with your application.
+                            
+                            <h2 style="color: #2d3748; margin-bottom: 25px; font-size: 24px;">📋 Application Status Update</h2>
+                            
+                            <p style="margin-bottom: 25px; color: #4a5568; font-size: 18px;">
+                                Dear Dr. ${doctorData.name},
                             </p>
-                            <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                                <h4 style="color: #dc2626; margin-bottom: 10px;">📝 Required Updates:</h4>
-                                <p style="color: #7f1d1d; margin: 0;">${reason || 'Please ensure all required documents are properly uploaded and meet our verification standards.'}</p>
+                            
+                            <p style="margin-bottom: 25px; color: #4a5568; font-size: 16px;">
+                                Thank you for taking the time to apply to join our VetCare platform. We truly appreciate your interest 
+                                in becoming part of our veterinary excellence network. Your dedication to animal care is commendable, 
+                                and we recognize the passion you bring to this noble profession.
+                            </p>
+                            
+                            <p style="margin-bottom: 30px; color: #4a5568; font-size: 16px;">
+                                After careful consideration and thorough review of your application by our credentialing team, 
+                                we regret to inform you that we are unable to move forward with your application at this time.
+                            </p>
+                            
+                            <div class="feedback-section">
+                                <h4 style="color: #c53030; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
+                                    <span style="margin-right: 12px; font-size: 24px;">📝</span> Detailed Feedback for Your Growth
+                                </h4>
+                                <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #feb2b2;">
+                                    <p style="color: #2d3748; margin: 0; font-size: 16px; font-style: italic; line-height: 1.6;">
+                                        "${reason || 'Please ensure all required documents meet our verification standards and credentials are properly validated.'}"
+                                    </p>
+                                </div>
                             </div>
-                            <div class="reapply-section">
-                                <h3 style="color: #1f2937; margin-bottom: 15px;">🔄 Next Steps</h3>
-                                <p style="margin-bottom: 20px; color: #6b7280;">
-                                    Please resubmit your application with the requested information. Our team will prioritize your review.
+                            
+                            <div class="encouragement-section">
+                                <h4 style="color: #2f855a; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
+                                    <span style="margin-right: 12px; font-size: 24px;">🌟</span> We Believe in Your Potential
+                                </h4>
+                                <p style="color: #2d3748; margin: 0 0 20px 0; font-size: 16px;">
+                                    Please don't be discouraged! Every successful professional journey includes moments of growth and learning. 
+                                    This feedback is an opportunity to strengthen your application and demonstrate your commitment to excellence.
                                 </p>
-                                <a href="http://localhost:5173/doctor-signup" style="display: inline-block; background: #0ea5e9; color: white; text-decoration: none; padding: 12px 25px; border-radius: 6px; font-weight: bold;">
-                                    📤 Resubmit Application
+                                
+                                <div style="background: white; padding: 25px; border-radius: 12px; border: 1px solid #9ae6b4;">
+                                    <h5 style="color: #2f855a; margin: 0 0 15px 0; font-size: 18px;">🎯 Steps for Success:</h5>
+                                    <ul class="steps-list">
+                                        <li><strong>📚 Address Specific Areas:</strong> Focus on the feedback provided to strengthen your qualifications</li>
+                                        <li><strong>🎓 Enhance Credentials:</strong> Consider additional training, certifications, or professional development</li>
+                                        <li><strong>📄 Update Documentation:</strong> Ensure all required documents are current and meet our standards</li>
+                                        <li><strong>🔄 Reapply with Confidence:</strong> Submit an updated application once improvements are complete</li>
+                                        <li><strong>💬 Seek Guidance:</strong> Our support team is here to help clarify any requirements</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="reapply-section">
+                                <h4 style="color: #2c5282; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
+                                    <span style="margin-right: 12px; font-size: 24px;">💝</span> A Message of Encouragement
+                                </h4>
+                                <div style="background: white; padding: 25px; border-radius: 12px; border: 1px solid #90cdf4;">
+                                    <p style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px; font-style: italic; text-align: center;">
+                                        <em>"Success is not final, failure is not fatal: it is the courage to continue that counts."</em>
+                                    </p>
+                                    <p style="color: #4a5568; margin: 0; font-size: 16px; text-align: center;">
+                                        Your passion for veterinary care is valuable to our community. We hope this experience 
+                                        will only strengthen your resolve to excel in this rewarding profession.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <p style="color: #4a5568; margin-bottom: 30px; font-size: 16px;">
+                                The veterinary field is blessed to have caring professionals like you. We sincerely hope 
+                                that you'll use this feedback constructively and consider reapplying in the future. 
+                                Our doors remain open for dedicated veterinarians who are committed to continuous improvement and excellence.
+                            </p>
+                            
+                            <div style="text-align: center; margin: 35px 0;">
+                                <a href="http://localhost:5173/doctor-signup" class="cta-button">
+                                    🔄 Reapply When Ready
+                                </a>
+                                <br>
+                                <a href="mailto:support@vetcare.com" style="color: #3182ce; text-decoration: none; font-size: 16px; margin-top: 15px; display: inline-block;">
+                                    📧 Get Support & Guidance
                                 </a>
                             </div>
-                            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-                                For assistance, contact us at <a href="mailto:support@vetcare.com" style="color: #16a34a;">support@vetcare.com</a>
-                            </p>
+                            
+                            <div style="border-top: 2px solid #e2e8f0; padding-top: 30px; margin-top: 40px; text-align: center;">
+                                <p style="color: #4a5568; font-size: 16px; margin: 0 0 12px 0;">
+                                    Wishing you all the best in your professional journey,
+                                </p>
+                                <p style="color: #2d3748; font-size: 20px; font-weight: bold; margin: 0 0 8px 0;">
+                                    🏥 The VetCare Credentialing Team
+                                </p>
+                                <p style="color: #718096; font-size: 14px; margin: 0; font-style: italic;">
+                                    "Together, we care for those who cannot speak for themselves"
+                                </p>
+                            </div>
                         </div>
+                        
                         <div class="footer">
-                            <div style="font-weight: bold; margin-bottom: 10px;">VetCare Professional Platform</div>
-                            <div style="font-size: 12px; color: #9ca3af;">© 2025 VetCare. All rights reserved.</div>
+                            <div style="font-weight: bold; font-size: 20px; margin-bottom: 15px;">VetCare Professional Platform</div>
+                            <div style="margin-bottom: 20px; color: #a0aec0;">Revolutionizing veterinary care across India</div>
+                            
+                            <div style="margin: 20px 0;">
+                                <a href="mailto:support@vetcare.com" style="color: #63b3ed; text-decoration: none; margin: 0 15px;">📧 Support</a>
+                                <a href="tel:+917985792091" style="color: #63b3ed; text-decoration: none; margin: 0 15px;">📞 Call Us</a>
+                                <a href="http://localhost:5173" style="color: #63b3ed; text-decoration: none; margin: 0 15px;">🌐 Platform</a>
+                            </div>
+
+                            <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid #4a5568; font-size: 12px; color: #a0aec0;">
+                                © 2025 VetCare Professional Platform. All rights reserved.<br>
+                                📍 Uttar Pradesh, Delhi, India | 🌐 www.vetcare.com<br>
+                                <em>This is an automated message from our secure credentialing system.</em>
+                            </div>
                         </div>
                     </div>
                 </body>
@@ -296,7 +387,7 @@ async function sendDoctorRejectionEmail(doctorData, reason) {
         }
     }
     
-    return { success: true, message: 'Rejection email logged (fallback mode)' };
+    return { success: true, message: 'Professional rejection email logged (fallback mode)' };
 }
 
 async function sendDoctorRemovalEmail(doctorData, reason) {
