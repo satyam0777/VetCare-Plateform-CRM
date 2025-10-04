@@ -104,6 +104,16 @@ const reportSchema = new mongoose.Schema({
     default: 'draft'
   },
   
+  // Payment Status for Report Access
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
+  },
+  reportAccessible: { type: Boolean, default: false },
+  paymentId: String, // Reference to payment transaction
+  paidAt: Date,
+  
   // Next Appointment
   nextAppointment: {
     suggested: { type: Boolean, default: false },
@@ -122,6 +132,21 @@ const reportSchema = new mongoose.Schema({
   // Additional Notes
   doctorNotes: String,
   privateNotes: String, // Only visible to doctor
+  
+  // Clinical Learning Notes
+  clinicalNote: {
+    outcome: {
+      type: String,
+      enum: ['successful', 'complications', 'fatality', 'ongoing'],
+    },
+    animalBehavior: String,
+    outcomeDetails: String,
+    lessonsLearned: String,
+    preventionStrategy: String,
+    complications: String,
+    addedAt: { type: Date, default: Date.now },
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' }
+  },
   
 }, { timestamps: true });
 
