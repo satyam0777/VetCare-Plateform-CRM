@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../utils/api';
+import DoctorVerificationPanel from './admin/DoctorVerificationPanel';
+import CommissionAnalyticsDashboard from './admin/CommissionAnalyticsDashboard';
 
 const AdminDashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -250,6 +252,16 @@ const AdminDashboard = () => {
             )}
           </button>
           <button 
+            onClick={() => setActiveTab('verification')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'verification' 
+                ? 'bg-indigo-600 text-white shadow-lg' 
+                : 'bg-white/70 text-gray-700 hover:bg-white'
+            }`}
+          >
+            📋 Document Verification
+          </button>
+          <button 
             onClick={() => setActiveTab('doctors')}
             className={`px-6 py-3 rounded-lg font-semibold transition-all ${
               activeTab === 'doctors' 
@@ -268,6 +280,16 @@ const AdminDashboard = () => {
             }`}
           >
             📅 Appointments
+          </button>
+          <button 
+            onClick={() => setActiveTab('analytics')}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+              activeTab === 'analytics' 
+                ? 'bg-teal-600 text-white shadow-lg' 
+                : 'bg-white/70 text-gray-700 hover:bg-white'
+            }`}
+          >
+            💰 Commission Analytics
           </button>
         </div>
       </div>
@@ -441,6 +463,14 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Document Verification Tab */}
+        {activeTab === 'verification' && (
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">📋 Document Verification Center</h2>
+            <DoctorVerificationPanel />
+          </div>
+        )}
+
         {/* All Doctors Tab */}
         {activeTab === 'doctors' && (
           <div>
@@ -484,6 +514,31 @@ const AdminDashboard = () => {
                         <p>⏰ {doctor.experience || 0} years exp.</p>
                         <p>📅 Joined: {new Date(doctor.createdAt).toLocaleDateString()}</p>
                       </div>
+                      
+                      {/* Document Information */}
+                      {doctor.documents && Object.keys(doctor.documents).length > 0 && (
+                        <div className="mb-4 p-3 bg-white/50 rounded-lg border border-gray-200">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            📋 Uploaded Documents
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(doctor.documents).map(([type, path]) => (
+                              path && (
+                                <button
+                                  key={type}
+                                  onClick={() => window.open(`http://localhost:5000/api/files/${path.split('\\').pop()}`, '_blank')}
+                                  className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md hover:bg-blue-200 transition-colors capitalize"
+                                >
+                                  📄 {type.replace(/([A-Z])/g, ' $1').trim()}
+                                </button>
+                              )
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Profile Completeness: {doctor.profileCompleteness || 0}%
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="flex gap-2 ml-4">
@@ -604,6 +659,13 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Commission Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div>
+            <CommissionAnalyticsDashboard />
           </div>
         )}
       </div>
