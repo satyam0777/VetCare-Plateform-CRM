@@ -5,6 +5,7 @@ const Report = require('../models/Report');
 const Animal = require('../models/Animal');
 const User = require('../models/User');
 const { auth, doctorAuth } = require('../middleware/authMiddleware');
+const { checkPaymentStatus, addPendingPayment } = require('../middleware/paymentMiddleware');
 
 // Helper function to check if user is admin
 const isAdminUser = (userId, userRole) => {
@@ -28,9 +29,9 @@ router.get('/user/:id', async (req, res) => {
 });
 
 // @route   POST /api/appointments
-// @desc    Book a new appointment
+// @desc    Book a new appointment (with payment status check)
 // @access  Private (authenticated users only)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, checkPaymentStatus, async (req, res) => {
   console.log("📥 Appointment request body:", req.body);
 
   try {
@@ -297,12 +298,28 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
     await report.save();
     console.log(`✅ Medical report created with ID: ${report._id}`);
 
+    // Add consultation to user's pending payments list
+    try {
+      const consultationAmount = appointment.payment?.totalAmount || 500;
+      await addPendingPayment(
+        appointment.user._id,
+        appointment._id,
+        appointment.doctor._id,
+        consultationAmount,
+        appointment.date
+      );
+      console.log(`💰 Added ₹${consultationAmount} to user's pending payments for consultation ${appointment._id}`);
+    } catch (paymentError) {
+      console.error('❌ Failed to add pending payment:', paymentError);
+      // Continue execution - don't fail the whole process
+    }
+
     // Send notification to user about report ready and payment required
     try {
       const NotificationService = require('../services/notificationService');
       await NotificationService.sendNotification(appointment.user._id, {
-        title: '📋 Medical Report Ready',
-        body: `Dr. ${appointment.doctor.name} has completed your consultation for ${appointment.petName}. Please complete payment to access the full report.`,
+        title: '📋 Medical Report Ready - Payment Required',
+        body: `Dr. ${appointment.doctor.name} has completed your consultation for ${appointment.petName}. Please complete payment of ₹${appointment.payment?.totalAmount || 500} to access the full report.`,
         type: 'report_ready',
         data: {
           appointmentId: appointment._id.toString(),
@@ -310,10 +327,11 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
           petName: appointment.petName,
           consultationFee: appointment.payment?.consultationFee || 0,
           totalAmount: appointment.payment?.totalAmount || 0,
-          action: 'make_payment'
+          action: 'make_payment',
+          paymentRequired: true
         }
       });
-      console.log(`✅ Notification sent to user about report ready`);
+      console.log(`✅ Notification sent to user about report ready and payment required`);
     } catch (notifError) {
       console.log(`⚠️ Failed to send notification:`, notifError.message);
     }
