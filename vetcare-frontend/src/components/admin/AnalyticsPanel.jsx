@@ -37,7 +37,15 @@ const AnalyticsPanel = () => {
           <div className="bg-gray-100 p-2 rounded">
             <span className="font-semibold">Total Appointments:</span> {stats.totalAppointments}
           </div>
-          {/* Add more metrics as needed */}
+          <div className="bg-green-100 p-2 rounded">
+            <span className="font-semibold">Total Revenue:</span> ₹{stats.totalRevenue || 0}
+          </div>
+          <div className="bg-blue-100 p-2 rounded">
+            <span className="font-semibold">Platform Commission:</span> ₹{stats.totalCommission || 0}
+          </div>
+          <div className="bg-emerald-100 p-2 rounded">
+            <span className="font-semibold">Doctor Earnings:</span> ₹{stats.totalDoctorEarnings || 0}
+          </div>
         </div>
       )}
     </div>
