@@ -1,4 +1,26 @@
-﻿const nodemailer = require('nodemailer');
+﻿// Generic sendEmail function for password reset and other notifications
+async function sendEmail({ to, subject, text, html }) {
+    if (!transporter) {
+        console.log('⚠️ Email not sent - transporter unavailable');
+        return { success: false, message: 'Email transporter unavailable' };
+    }
+    try {
+        const mailOptions = {
+            from: `VetCare <${process.env.EMAIL_USER || 'vetcare0777@gmail.com'}>`,
+            to,
+            subject,
+            text,
+            html
+        };
+        const result = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent:', result.messageId);
+        return { success: true, messageId: result.messageId };
+    } catch (error) {
+        console.log('❌ Email send failed:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+const nodemailer = require('nodemailer');
 
 console.log('✅ VetCare Email Service - Ready');
 
@@ -733,15 +755,16 @@ async function sendConsultationCompletedDoctorEmail({ doctor, user, appointment,
 }
 
 module.exports = {
-        initializeEmailService,
-        generateDoctorAccessLink,
-        sendDoctorApprovalEmail,
-        sendDoctorRejectionEmail,
-        sendDoctorRemovalEmail,
-        sendAppointmentBookedEmail,
-        sendAppointmentBookedDoctorEmail,
-        sendConsultationStartedEmail,
-        sendConsultationStartedDoctorEmail,
-        sendConsultationCompletedEmail,
-        sendConsultationCompletedDoctorEmail
+    initializeEmailService,
+    generateDoctorAccessLink,
+    sendDoctorApprovalEmail,
+    sendDoctorRejectionEmail,
+    sendDoctorRemovalEmail,
+    sendAppointmentBookedEmail,
+    sendAppointmentBookedDoctorEmail,
+    sendConsultationStartedEmail,
+    sendConsultationStartedDoctorEmail,
+    sendConsultationCompletedEmail,
+    sendConsultationCompletedDoctorEmail,
+    sendEmail
 };
