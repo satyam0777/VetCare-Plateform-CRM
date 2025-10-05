@@ -5,6 +5,8 @@ const adminSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   userIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Array of user IDs
+  resetPasswordCode: { type: String },
+  resetPasswordExpires: { type: Date },
   // ...other admin fields
 });
 
