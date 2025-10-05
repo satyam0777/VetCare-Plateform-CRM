@@ -73,6 +73,15 @@ const Login = () => {
                   onChange={e => setPassword(e.target.value)} 
                 />
               </div>
+              <div className="text-right mt-2">
+                <button
+                  type="button"
+                  className="text-blue-600 hover:text-emerald-600 text-sm font-semibold focus:outline-none"
+                  onClick={() => navigate('/forgot-password')}
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             {error && (
