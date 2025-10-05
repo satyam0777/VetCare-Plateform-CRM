@@ -263,6 +263,10 @@ const userSchema = new mongoose.Schema({
   lastLogin: Date,
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
+  ,
+  // Password reset fields
+  resetPasswordCode: { type: String },
+  resetPasswordExpires: { type: Date }
 }, {
   timestamps: true
 });
