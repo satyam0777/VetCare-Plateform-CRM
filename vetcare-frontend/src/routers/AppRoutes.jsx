@@ -7,8 +7,10 @@ import DoctorDashboardPage from '../pages/DoctorDashboardPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import Login from '../components/auth/Login';
+import ForgotPassword from '../components/auth/ForgotPassword';
 import Register from '../components/auth/Register';
 import AdminLogin from '../components/auth/AdminLogin';
+import AdminForgotPassword from '../components/auth/AdminForgotPassword';
 import DoctorLinkLogin from '../components/auth/DoctorLinkLogin';
 import CareerPortal from '../pages/CareerPortal';
 import PrivateRoute from '../components/common/PrivateRoute';
@@ -22,9 +24,11 @@ import TokenDebug from '../components/debug/TokenDebug';
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<LandingPage />} />
-    <Route path="/login" element={<Login />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/forgot-password" element={<ForgotPassword />} />
     <Route path="/register" element={<Register />} />
-    <Route path="/admin-login" element={<AdminLogin />} />
+  <Route path="/admin-login" element={<AdminLogin />} />
+  <Route path="/admin-forgot-password" element={<AdminForgotPassword />} />
     <Route path="/debug-token" element={<TokenDebug />} />
     <Route path="/doctor-login/:link" element={<DoctorLinkLogin />} />
     <Route path="/career-portal" element={<CareerPortal />} />
