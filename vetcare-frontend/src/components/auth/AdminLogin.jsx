@@ -130,6 +130,15 @@ const AdminLogin = () => {
                 '🔐 Access Admin Dashboard'
               )}
             </button>
+            <div className="text-right mt-2">
+              <button
+                type="button"
+                className="text-sm text-purple-600 hover:underline focus:outline-none"
+                onClick={() => navigate('/admin-forgot-password')}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </form>
 
           {/* Security & Access Info */}
