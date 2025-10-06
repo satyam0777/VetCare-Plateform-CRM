@@ -224,7 +224,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // Account Status
-  status: { type: String, enum: ['active', 'inactive', 'suspended', 'banned'], default: 'active' },
+  status: { type: String, enum: ['active', 'inactive', 'suspended', 'banned', 'deleted'], default: 'active' },
   
   // Referral System
   referral: {
