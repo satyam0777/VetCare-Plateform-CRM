@@ -1,18 +1,45 @@
 
 import React, { useState } from 'react';
+import ReactivationModal from './ReactivationModal';
+import api from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
 const Login = () => {
+
   const { login, loading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showReactivation, setShowReactivation] = useState(false);
+  const [reactivationReason, setReactivationReason] = useState('');
+  const [reactivationLoading, setReactivationLoading] = useState(false);
+  const [reactivationMsg, setReactivationMsg] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const success = await login(email, password);
+    // If login fails due to deactivation, show reactivation modal
+    if (error && error.toLowerCase().includes('deactivated')) {
+      setShowReactivation(true);
+    }
     if (success) navigate('/dashboard');
+  };
+
+  const handleReactivationSubmit = async () => {
+    if (!email || !reactivationReason || reactivationReason.trim().length < 3) return;
+    setReactivationLoading(true);
+    setReactivationMsg('');
+    try {
+      await api.post('/auth/request-reactivation', { email, reason: reactivationReason });
+      setReactivationMsg('Your reactivation request has been submitted. The admin will review it soon.');
+      setShowReactivation(false);
+      setReactivationReason('');
+    } catch (err) {
+      setReactivationMsg('Failed to submit reactivation request. Please try again later.');
+    } finally {
+      setReactivationLoading(false);
+    }
   };
 
   return (
@@ -29,6 +56,16 @@ const Login = () => {
         </div>
         <p className="text-gray-600 text-lg">Welcome back to your veterinary platform</p>
       </div>
+
+      {/* Reactivation Modal */}
+      <ReactivationModal
+        isOpen={showReactivation}
+        onClose={() => setShowReactivation(false)}
+        onSubmit={handleReactivationSubmit}
+        reason={reactivationReason}
+        setReason={setReactivationReason}
+        loading={reactivationLoading}
+      />
 
       {/* Login Form */}
       <div className="w-full max-w-md">
@@ -84,12 +121,28 @@ const Login = () => {
               </div>
             </div>
 
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3">
                 <div className="flex items-center gap-2">
                   <span className="text-red-500">⚠️</span>
                   <span className="text-red-700 text-sm font-medium">{error}</span>
                 </div>
+                {error.toLowerCase().includes('deactivated') && (
+                  <button
+                    type="button"
+                    className="mt-2 text-blue-600 underline text-sm"
+                    onClick={() => setShowReactivation(true)}
+                  >
+                    Request Reactivation
+                  </button>
+                )}
+              </div>
+            )}
+
+            {reactivationMsg && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mt-2 text-emerald-700 text-sm font-medium">
+                {reactivationMsg}
               </div>
             )}
 
