@@ -29,9 +29,11 @@ const UserDetailPanel = ({ user, onClose }) => {
           <div className="mb-2"><span className="font-semibold">Email:</span> {fullUser.email}</div>
           <div className="mb-2"><span className="font-semibold">Phone:</span> {fullUser.phone || '-'}</div>
           <div className="mb-2"><span className="font-semibold">Role:</span> {fullUser.role}</div>
-          <div className="mb-2"><span className="font-semibold">Status:</span> {fullUser.isActive ? 'Active' : 'Inactive'}</div>
+          <div className="mb-2"><span className="font-semibold">Status:</span> {fullUser.isActive ? 'Active' : 'Inactive'}{fullUser.status ? ` (${fullUser.status})` : ''}</div>
           <div className="mb-2"><span className="font-semibold">Created At:</span> {fullUser.createdAt ? new Date(fullUser.createdAt).toLocaleString() : '-'}</div>
-          {/* Add more fields as needed */}
+          {fullUser.status === 'deleted' && (
+            <div className="mb-2 p-2 bg-yellow-100 text-yellow-800 rounded">This user has been deleted (soft delete).</div>
+          )}
         </>
       )}
     </div>
