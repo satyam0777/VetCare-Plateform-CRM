@@ -40,3 +40,11 @@
 .read-the-docs {
   color: #888;
 }
+
+.animate-testimonial-scroll {
+  animation: testimonial-scroll 40s linear infinite;
+}
+@keyframes testimonial-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
