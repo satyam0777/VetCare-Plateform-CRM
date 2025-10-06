@@ -92,14 +92,16 @@ const auth = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // ✅ Handle admin tokens (system admin doesn't exist in database)
-      if (decoded.id === 'admin' && decoded.role === 'admin') {
-        console.log('🔑 Admin token verified');
-        req.user = 'admin';
+      // Accept both legacy and DB admin tokens
+      if (
+        (decoded.id === 'admin' && decoded.role === 'admin') ||
+        (decoded.role === 'admin' && decoded.id && typeof decoded.id === 'string')
+      ) {
+        console.log('🔑 Admin token verified (legacy or DB admin)');
+        req.user = decoded.id;
         req.userRole = 'admin';
         req.userObj = {
-          _id: 'admin',
+          _id: decoded.id,
           name: process.env.ADMIN_NAME || 'VetCare Administrator',
           email: process.env.ADMIN_EMAIL || 'admin@vetcare.com',
           role: 'admin',
@@ -108,18 +110,15 @@ const auth = async (req, res, next) => {
         };
         return next();
       }
-      
       // Regular user token handling
       const user = await User.findById(decoded.id).select('-password');
       if (!user) {
         return res.status(401).json({ message: 'Token is no longer valid.' });
       }
-
       // Check if user account is active
       if (!user.isActive) {
         return res.status(401).json({ message: 'Account has been deactivated.' });
       }
-
       req.user = decoded.id;
       req.userRole = user.role;
       req.userObj = user;
