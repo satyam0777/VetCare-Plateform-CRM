@@ -265,21 +265,23 @@ router.post("/login", async (req, res) => {
   const emailService = require('../services/emailService');
 
   try {
+    // Debug: Log incoming login request
+    console.log('🔐 [LOGIN] Attempt:', { email });
     // Check if this is an admin login attempt (by email)
     const admin = await Admin.findOne({ email });
     if (admin) {
+      console.log('🔐 [LOGIN] Admin found:', { adminId: admin._id, email: admin.email });
       // Compare hashed password
       const isMatch = await bcrypt.compare(password, admin.password);
       if (!isMatch) {
+        console.log('❌ [LOGIN] Invalid admin password');
         return res.status(401).json({ message: "Invalid admin credentials" });
       }
 
       // Create JWT token for admin
-      const token = jwt.sign(
-        { id: admin._id, email: admin.email, role: 'admin' },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+      const tokenPayload = { id: admin._id, email: admin.email, role: 'admin' };
+      const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
+      console.log('✅ [LOGIN] Admin login successful, token payload:', tokenPayload);
 
       // Send login notification email
       try {
@@ -336,24 +338,25 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Regular user authentication (existing logic)
+  // Regular user authentication (existing logic)
+  // Debug: Not an admin, checking user
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('❌ [LOGIN] User not found');
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('❌ [LOGIN] Invalid user password');
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Create JWT token
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const userTokenPayload = { id: user._id, email: user.email, role: user.role };
+    const token = jwt.sign(userTokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
+    console.log('✅ [LOGIN] User login successful, token payload:', userTokenPayload);
 
     // Fetch full user info (excluding password)
     const userInfo = await User.findById(user._id).select('-password');
