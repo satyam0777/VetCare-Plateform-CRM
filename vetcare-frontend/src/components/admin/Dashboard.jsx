@@ -8,6 +8,12 @@ import AdminNotificationPanel from './AdminNotificationPanel';
 import DoctorVerificationPanel from './DoctorVerificationPanel';
 import UserListPanel from './UserListPanel';
 import UserDetailPanel from './UserDetailPanel';
+import ReactivationRequestsPanel from './ReactivationRequestsPanel';
+        <div className="bg-gradient-to-br from-cyan-50/90 to-cyan-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-cyan-100/50" onClick={() => handleModalOpen('reactivation')}>
+          <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">🔄</div>
+          <span className="font-bold text-lg text-gray-900 mb-2">Reactivation Requests</span>
+          <span className="text-sm text-gray-600 text-center">Review and manage user reactivation requests</span>
+        </div>
 
 const Dashboard = () => {
   const [modal, setModal] = useState('');
@@ -87,11 +93,18 @@ const Dashboard = () => {
       </div>
 
       {/* Admin Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
         <div className="bg-gradient-to-br from-purple-50/90 to-purple-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-purple-100/50" onClick={() => handleModalOpen('doctor')}>
           <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">🧑‍⚕️</div>
           <span className="font-bold text-lg text-gray-900 mb-2">Doctor Management</span>
           <span className="text-sm text-gray-600 text-center">Approve, manage and oversee veterinary doctors</span>
+        </div>
+
+        {/* Reactivation Requests Card */}
+        <div className="bg-gradient-to-br from-cyan-50/90 to-cyan-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-cyan-100/50" onClick={() => handleModalOpen('reactivation')}>
+          <div className="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center text-3xl text-white mb-4">🔄</div>
+          <span className="font-bold text-lg text-gray-900 mb-2">Reactivation Requests</span>
+          <span className="text-sm text-gray-600 text-center">Review and manage user reactivation requests</span>
         </div>
 
         <div className="bg-gradient-to-br from-blue-50/90 to-blue-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-blue-100/50" onClick={() => handleModalOpen('appointments')}>
@@ -169,6 +182,7 @@ const Dashboard = () => {
                   {selectedUser && <UserDetailPanel user={selectedUser} onClose={() => setSelectedUser(null)} />}
                 </>
               )}
+              {modal === 'reactivation' && <ReactivationRequestsPanel />}
             </div>
           </div>
         </div>
