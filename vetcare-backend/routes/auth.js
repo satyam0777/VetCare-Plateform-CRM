@@ -6,6 +6,39 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const authController = require('../controllers/authController');
 
+// @route   POST /api/auth/request-reactivation
+// @desc    User requests account reactivation with a reason
+// @access  Public (user must provide email and reason)
+router.post('/request-reactivation', async (req, res) => {
+  try {
+    const { email, reason } = req.body;
+    if (!email || !reason || reason.trim().length < 3) {
+      return res.status(400).json({ error: 'Email and valid reason are required.' });
+    }
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    if (user.isActive) {
+      return res.status(400).json({ error: 'Account is already active.' });
+    }
+    user.reactivationRequest = {
+      requested: true,
+      reason,
+      requestedAt: new Date(),
+      status: 'pending',
+      adminResponse: null,
+      respondedAt: null
+    };
+    await user.save();
+    // Optionally: send notification to admin here
+    res.json({ success: true, message: 'Reactivation request submitted.' });
+  } catch (error) {
+    console.error('Error in reactivation request:', error);
+    res.status(500).json({ error: 'Failed to submit reactivation request.' });
+  }
+});
+
 // Admin Forgot Password - send code to admin email
 router.post('/admin/forgot-password', async (req, res) => {
   const { email } = req.body;
@@ -351,6 +384,11 @@ router.post("/login", async (req, res) => {
     if (!isMatch) {
       console.log('❌ [LOGIN] Invalid user password');
       return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Check if user is deactivated
+    if (user.isActive === false) {
+      return res.status(403).json({ message: "Your account is deactivated. Please contact VetCare support or request reactivation." });
     }
 
     // Create JWT token
