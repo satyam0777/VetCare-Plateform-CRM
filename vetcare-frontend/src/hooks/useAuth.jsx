@@ -18,7 +18,13 @@ export function useAuth() {
       setLoading(false);
       return true;
     } catch (err) {
-      setError(err.response?.data?.msg || 'Login failed');
+      // Prefer backend error message, handle deactivation (403) clearly
+      let backendMsg = err.response?.data?.message || err.response?.data?.msg || 'Login failed';
+      if (err.response?.status === 403 && backendMsg.toLowerCase().includes('deactivat')) {
+        setError(backendMsg);
+      } else {
+        setError(backendMsg);
+      }
       setLoading(false);
       return false;
     }
