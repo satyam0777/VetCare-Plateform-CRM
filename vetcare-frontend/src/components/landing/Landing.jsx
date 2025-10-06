@@ -178,60 +178,14 @@ const testimonials = [
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// TestimonialCarousel: slow, infinite horizontal motion
-const TestimonialCarousel = ({ testimonials }) => {
-  const containerRef = useRef(null);
-  const [isHovered, setIsHovered] = useState(false);
 
+// TestimonialCarousel: pure CSS marquee effect
+const TestimonialCarousel = ({ testimonials }) => {
   // Duplicate testimonials for seamless loop
   const items = [...testimonials, ...testimonials];
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    let animationId;
-    let lastTimestamp = 0;
-    const speed = 0.18; // px per ms (slower for readability)
-
-    function step(timestamp) {
-      if (!lastTimestamp) lastTimestamp = timestamp;
-      const elapsed = timestamp - lastTimestamp;
-      lastTimestamp = timestamp;
-      if (!isHovered) {
-        let nextScroll = container.scrollLeft + speed * elapsed;
-        const maxScroll = container.scrollWidth / 2;
-        if (nextScroll >= maxScroll) {
-          nextScroll = 0;
-        }
-        container.scrollLeft = nextScroll;
-      }
-      animationId = requestAnimationFrame(step);
-    }
-    animationId = requestAnimationFrame(step);
-
-    // Reset scrollLeft on resize for robustness
-    const handleResize = () => {
-      container.scrollLeft = 0;
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isHovered]);
-
   return (
-    <div
-      className="relative w-full max-w-5xl overflow-x-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div
-        ref={containerRef}
-        className="flex gap-8 py-4 px-4"
-        style={{ width: 'max-content', minWidth: '100%', scrollBehavior: 'auto' }}
-      >
+    <div className="relative w-full max-w-5xl overflow-x-hidden">
+      <div className="flex gap-8 py-4 px-4 animate-testimonial-scroll" style={{ width: 'max-content', minWidth: '100%' }}>
         {items.map((t, i) => (
           <div
             key={i}
@@ -246,7 +200,6 @@ const TestimonialCarousel = ({ testimonials }) => {
       </div>
       <div className="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-blue-50 to-transparent pointer-events-none" />
       <div className="absolute left-0 top-0 h-full w-16 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none" />
-      <div className="absolute bottom-2 right-4 text-xs text-gray-400">Hover to pause</div>
     </div>
   );
 };
