@@ -29,6 +29,18 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  // Reactivation request (if user requests reactivation after deactivation)
+  reactivationRequest: {
+    requested: { type: Boolean, default: false },
+    reason: { type: String, default: null },
+    requestedAt: { type: Date },
+    status: { type: String, enum: ['pending', 'approved', 'rejected', null], default: null },
+    adminResponse: { type: String, default: null },
+    respondedAt: { type: Date }
+  },
+  // Admin action reasons
+  deactivationReason: { type: String, default: null },
+  deletionReason: { type: String, default: null },
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   mobile: { type: String },
