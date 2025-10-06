@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import ReasonModal from './ReasonModal';
 import api from '../../utils/api';
 
 const UserListPanel = ({ onSelectUser }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Modal state for reason input
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalUser, setModalUser] = useState(null);
+  const [modalType, setModalType] = useState('soft'); // 'soft' or 'hard'
+  const [reason, setReason] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -23,28 +30,43 @@ const UserListPanel = ({ onSelectUser }) => {
 
 
   // Soft delete user handler
-  const handleDelete = async (user) => {
-    if (!window.confirm(`Are you sure you want to delete user ${user.name} (${user.email})? This will deactivate their account.`)) return;
-    try {
-      setLoading(true);
-      await api.patch(`/admin/users/${user._id}/delete`);
-      setUsers((prev) => prev.map(u => u._id === user._id ? { ...u, isActive: false, status: 'deleted' } : u));
-    } catch (err) {
-      alert('Failed to delete user');
-    } finally {
-      setLoading(false);
-    }
+
+  const handleDelete = (user) => {
+    setModalUser(user);
+    setModalType('soft');
+    setReason('');
+    setModalOpen(true);
   };
 
   // Hard delete user handler
-  const handleHardDelete = async (user) => {
-    if (!window.confirm(`Are you sure you want to permanently delete user ${user.name} (${user.email})? This cannot be undone!`)) return;
+
+  const handleHardDelete = (user) => {
+    setModalUser(user);
+    setModalType('hard');
+    setReason('');
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setModalUser(null);
+    setReason('');
+  };
+
+  const handleModalSubmit = async () => {
+    if (!modalUser || !reason || reason.trim().length < 3) return;
     try {
       setLoading(true);
-      await api.delete(`/admin/users/${user._id}/hard-delete`);
-      setUsers((prev) => prev.filter(u => u._id !== user._id));
+      if (modalType === 'soft') {
+        await api.patch(`/admin/users/${modalUser._id}/delete`, { reason });
+        setUsers((prev) => prev.map(u => u._id === modalUser._id ? { ...u, isActive: false, status: 'deleted' } : u));
+      } else {
+        await api.delete(`/admin/users/${modalUser._id}/hard-delete`, { data: { reason } });
+        setUsers((prev) => prev.filter(u => u._id !== modalUser._id));
+      }
+      handleModalClose();
     } catch (err) {
-      alert('Failed to hard delete user');
+      alert('Failed to delete user');
     } finally {
       setLoading(false);
     }
@@ -55,6 +77,14 @@ const UserListPanel = ({ onSelectUser }) => {
       <h3 className="text-xl font-bold mb-4">All Users</h3>
       {loading && <div>Loading users...</div>}
       {error && <div className="text-red-600">{error}</div>}
+      <ReasonModal
+        isOpen={modalOpen}
+        onClose={handleModalClose}
+        onSubmit={handleModalSubmit}
+        reason={reason}
+        setReason={setReason}
+        actionType={modalType}
+      />
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white rounded-lg shadow">
           <thead>
