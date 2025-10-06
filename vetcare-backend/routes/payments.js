@@ -594,16 +594,8 @@ router.post('/admin/process-payouts', auth, async (req, res) => {
             reason: transferResult.error,
             amount: payment.financialBreakdown.doctorPayout
           });
+
         }
-          doctorName: payment.doctorId.name,
-          status: 'processed',
-          amount: payment.financialBreakdown.doctorPayout,
-          payoutId: payoutId,
-          bankAccount: `****${payment.doctorId.bankDetails.accountNumber.slice(-4)}`
-        });
-
-        console.log(`💰 Payout processed: ₹${payment.financialBreakdown.doctorPayout} to Dr. ${payment.doctorId.name}`);
-
       } catch (error) {
         payoutResults.push({
           doctorId: payment.doctorId._id,
