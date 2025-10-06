@@ -60,13 +60,14 @@ const io = socketIO(server, {
 });
 
 // CORS configuration
-app.use(cors({ 
+app.use(cors({
   origin: [
-    'http://localhost:5173', 
-    'http://localhost:3000', 
+    'https://vet-care-plateform-crm.vercel.app', // your Vercel frontend
+    'http://localhost:5173',
+    'http://localhost:3000',
     'http://localhost:3001',
-    process.env.FRONTEND_URL || 'http://localhost:3000'  // Production frontend URL
-  ], 
+    process.env.FRONTEND_URL || 'http://localhost:3000'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Doctor-Link']
