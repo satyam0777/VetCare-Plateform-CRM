@@ -238,18 +238,18 @@ const Landing = () => {
             </div>
           </div>
           <div className="flex-1 flex items-center justify-center mt-8 sm:mt-0 w-full">
-            <div className="relative w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl">
+            <div className="relative w-full max-w-[320px] xs:max-w-[360px] sm:max-w-md md:max-w-lg lg:max-w-xl">
               <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-3xl opacity-20 blur-2xl"></div>
-              <div className="relative bg-white rounded-3xl shadow-2xl w-full h-[320px] xs:h-[360px] sm:h-[400px] border-4 border-white overflow-hidden">
-                <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-green-100 to-green-200 flex flex-col items-center justify-center p-6">
+              <div className="relative bg-white rounded-3xl shadow-2xl w-full h-[360px] xs:h-[380px] sm:h-[400px] border-4 border-white overflow-hidden">
+                <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-green-100 to-green-200 flex flex-col items-center justify-center p-3 xs:p-4 sm:p-6">
                   <h3 className="text-lg font-bold text-green-800 mb-4 text-center">Animals We Care For</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐄</div><div className="text-xs font-semibold text-gray-700">Cattle</div></div>
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐐</div><div className="text-xs font-semibold text-gray-700">Goats</div></div>
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐕</div><div className="text-xs font-semibold text-gray-700">Dogs</div></div>
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐈</div><div className="text-xs font-semibold text-gray-700">Cats</div></div>
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐎</div><div className="text-xs font-semibold text-gray-700">Horses</div></div>
-                    <div className="bg-white rounded-xl p-3 text-center shadow-sm"><div className="text-3xl mb-1">🐷</div><div className="text-xs font-semibold text-gray-700">Pigs</div></div>
+                  <div className="grid grid-cols-2 gap-2 xs:gap-3">
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐄</div><div className="text-xs font-semibold text-gray-700 truncate">Cattle</div></div>
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐐</div><div className="text-xs font-semibold text-gray-700 truncate">Goats</div></div>
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐕</div><div className="text-xs font-semibold text-gray-700 truncate">Dogs</div></div>
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐈</div><div className="text-xs font-semibold text-gray-700 truncate">Cats</div></div>
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐎</div><div className="text-xs font-semibold text-gray-700 truncate">Horses</div></div>
+                    <div className="bg-white rounded-xl p-2 xs:p-3 text-center shadow-sm"><div className="text-2xl xs:text-3xl mb-1">🐷</div><div className="text-xs font-semibold text-gray-700 truncate">Pigs</div></div>
                   </div>
                 </div>
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-br from-blue-100 to-blue-200 flex flex-col items-center justify-center p-6">
