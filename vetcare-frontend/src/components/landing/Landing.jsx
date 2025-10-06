@@ -214,33 +214,33 @@ const Landing = () => {
   return (
     <div className="min-h-screen w-full bg-white">
       {/* Hero Section */}
-      <section className="w-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 px-4 md:px-8 pt-20 pb-16">
-        <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between gap-12">
+      <section className="w-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 px-2 sm:px-4 md:px-8 pt-16 pb-10 sm:pt-20 sm:pb-16">
+        <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
           <div className="flex-1 flex flex-col items-start justify-center">
             <div className="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
               🩺 Professional Veterinary Care Platform
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-gray-900 leading-tight">
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 sm:mb-6 text-gray-900 leading-tight text-center sm:text-left">
               <span className="text-blue-600">VetCare</span> - Where <span className="text-green-600">Animals</span> Get the Best Care
             </h1>
-            <p className="mb-8 text-xl text-gray-600 max-w-xl leading-relaxed">
+            <p className="mb-6 sm:mb-8 text-base xs:text-lg sm:text-xl text-gray-600 max-w-xl leading-relaxed text-center sm:text-left">
               India's leading veterinary platform connecting farmers, livestock owners, and pet parents with certified veterinary doctors. Expert animal healthcare at your fingertips - from routine checkups to emergency treatments.
             </p>
-            <div className="flex flex-wrap gap-4 mb-8">
+            <div className="flex flex-wrap gap-3 sm:gap-4 mb-6 sm:mb-8 justify-center sm:justify-start">
               <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all text-lg" onClick={() => navigate('/register')}>Get Started Free</button>
               <button className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all text-lg" onClick={() => navigate('/login')}>Login</button>
               <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all text-sm" onClick={() => navigate('/admin-login')}>👑 Admin</button>
             </div>
-            <div className="flex items-center gap-6 text-sm text-gray-600">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600 justify-center sm:justify-start">
               <div className="flex items-center gap-2"><span className="text-green-600">🩺</span> Certified Vets Only</div>
               <div className="flex items-center gap-2"><span className="text-green-600">⚡</span> Instant Consultation</div>
               <div className="flex items-center gap-2"><span className="text-green-600">🏆</span> Trusted by 10K+ Farmers</div>
             </div>
           </div>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-3xl opacity-20 blur-2xl"></div>
-              <div className="relative bg-white rounded-3xl shadow-2xl w-[450px] h-[400px] border-4 border-white overflow-hidden">
+          <div className="flex-1 flex items-center justify-center mt-8 sm:mt-0 w-full">
+            <div className="relative w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl">
+              <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-3xl opacity-20 blur-2xl"></div>
+              <div className="relative bg-white rounded-3xl shadow-2xl w-full h-[320px] xs:h-[360px] sm:h-[400px] border-4 border-white overflow-hidden">
                 <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-green-100 to-green-200 flex flex-col items-center justify-center p-6">
                   <h3 className="text-lg font-bold text-green-800 mb-4 text-center">Animals We Care For</h3>
                   <div className="grid grid-cols-2 gap-3">
@@ -266,7 +266,7 @@ const Landing = () => {
             </div>
           </div>
         </div>
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+  <div className="w-full max-w-7xl mx-auto grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mt-10 sm:mt-16">
           {stats.map((stat, i) => (
             <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow border border-white/20">
               <div className="text-4xl font-extrabold text-blue-600 mb-2">{stat.number}</div>
@@ -277,8 +277,8 @@ const Landing = () => {
       </section>
 
       {/* Testimonials Section - Dynamic Horizontal Motion Carousel */}
-      <section className="w-full bg-gradient-to-br from-blue-50 to-emerald-50 py-16 px-4 md:px-0 flex flex-col items-center">
-        <h2 className="text-4xl font-bold text-center mb-10 text-gray-900">What Our Users Say</h2>
+  <section className="w-full bg-gradient-to-br from-blue-50 to-emerald-50 py-10 sm:py-16 px-2 sm:px-4 md:px-0 flex flex-col items-center">
+  <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-6 sm:mb-10 text-gray-900">What Our Users Say</h2>
         <div className="w-full flex justify-center">
           <TestimonialCarousel testimonials={testimonials} />
         </div>
@@ -286,9 +286,9 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="w-full bg-white py-16 px-4 md:px-0 flex flex-col items-center">
-        <h2 className="text-4xl font-bold text-center mb-10 text-gray-900">Platform Features</h2>
-        <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+  <section className="w-full bg-white py-10 sm:py-16 px-2 sm:px-4 md:px-0 flex flex-col items-center">
+  <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-6 sm:mb-10 text-gray-900">Platform Features</h2>
+  <div className="max-w-5xl w-full grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {features.map((feature, i) => (
             <div key={i} className="bg-blue-50 rounded-2xl shadow p-8 flex flex-col items-center text-center hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">{feature.icon}</div>
@@ -300,9 +300,9 @@ const Landing = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="w-full bg-gradient-to-br from-emerald-50 to-blue-50 py-16 px-4 md:px-0 flex flex-col items-center">
-        <h2 className="text-4xl font-bold text-center mb-10 text-gray-900">How VetCare Works</h2>
-        <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-3 gap-8">
+  <section className="w-full bg-gradient-to-br from-emerald-50 to-blue-50 py-10 sm:py-16 px-2 sm:px-4 md:px-0 flex flex-col items-center">
+  <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-6 sm:mb-10 text-gray-900">How VetCare Works</h2>
+  <div className="max-w-5xl w-full grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
           <div className="bg-white rounded-2xl shadow p-8 flex flex-col items-center text-center">
             <div className="text-4xl mb-4">📱</div>
             <h3 className="text-lg font-bold mb-2 text-emerald-700">1. Register & Book</h3>
@@ -322,9 +322,9 @@ const Landing = () => {
       </section>
 
       {/* Core Team Section */}
-      <section className="w-full bg-white py-16 px-4 md:px-0 flex flex-col items-center">
-        <h2 className="text-4xl font-bold text-center mb-10 text-gray-900">Meet Our Core Team</h2>
-        <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+  <section className="w-full bg-white py-10 sm:py-16 px-2 sm:px-4 md:px-0 flex flex-col items-center">
+  <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-center mb-6 sm:mb-10 text-gray-900">Meet Our Core Team</h2>
+  <div className="max-w-5xl w-full grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {coreTeam.map((member, i) => (
             <div key={i} className="bg-emerald-50 rounded-2xl shadow p-8 flex flex-col items-center text-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedMember(member)}>
               <div className="text-5xl mb-4">{member.avatar}</div>
@@ -361,8 +361,8 @@ const Landing = () => {
           </div>
         )}
         {/* Extended Team Note */}
-        <div className="w-full flex justify-center mt-12">
-          <div className="max-w-3xl w-full bg-blue-50 border-l-4 border-blue-400 rounded-2xl shadow p-8 flex flex-col items-center text-center">
+        <div className="w-full flex justify-center mt-8 sm:mt-12 px-2">
+          <div className="max-w-3xl w-full bg-blue-50 border-l-4 border-blue-400 rounded-2xl shadow p-4 sm:p-8 flex flex-col items-center text-center">
             <div className="text-3xl mb-2">🩺👩‍⚕️👨‍⚕️</div>
             <h3 className="text-2xl font-bold text-blue-700 mb-2">50+ Veterinary Doctors & Growing</h3>
             <p className="text-gray-700 mb-2">Beyond our core team, VetCare is proud to have a network of 50+ certified veterinary doctors from top institutions across India, serving animals and their owners with dedication and compassion.</p>
@@ -376,13 +376,13 @@ const Landing = () => {
         </div>
       </section>
     {/* Call to Action Section */}
-    <section className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 py-16 flex flex-col items-center justify-center">
-      <h2 className="text-4xl font-bold text-white mb-6 text-center">Ready to Experience Modern Veterinary Care?</h2>
-      <div className="flex flex-wrap gap-4 mb-4 justify-center">
-        <button className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all text-lg" onClick={() => navigate('/register')}>Get Started Free</button>
-        <button className="bg-white text-emerald-600 px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-emerald-50 transition-all text-lg" onClick={() => navigate('/login')}>Login</button>
+    <section className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 py-10 sm:py-16 flex flex-col items-center justify-center">
+      <h2 className="text-2xl xs:text-3xl sm:text-4xl font-bold text-white mb-4 sm:mb-6 text-center">Ready to Experience Modern Veterinary Care?</h2>
+      <div className="flex flex-wrap gap-3 sm:gap-4 mb-3 sm:mb-4 justify-center">
+        <button className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold shadow-lg hover:bg-blue-50 transition-all text-base sm:text-lg" onClick={() => navigate('/register')}>Get Started Free</button>
+        <button className="bg-white text-emerald-600 px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold shadow-lg hover:bg-emerald-50 transition-all text-base sm:text-lg" onClick={() => navigate('/login')}>Login</button>
       </div>
-      <div className="text-white text-lg">Join 10,000+ animal owners and farmers using VetCare</div>
+      <div className="text-white text-base sm:text-lg">Join 10,000+ animal owners and farmers using VetCare</div>
     </section>
 
     {/* Footer Section */}
