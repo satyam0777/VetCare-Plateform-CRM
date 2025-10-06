@@ -1,4 +1,3 @@
-// ...existing code...
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
@@ -7,6 +6,57 @@ const Appointment = require('../models/Appointment');
 const { auth } = require('../middleware/authMiddleware');
 const emailService = require('../services/emailService');
 const Admin = require('../models/Admin');
+
+// @route   DELETE /api/admin/users/:id/hard-delete
+// @desc    Permanently delete a user (admin only, not admin/owner)
+// @access  Admin only
+router.delete('/users/:id/hard-delete', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    // Prevent deleting admin/owner accounts
+    if (user.role === 'admin' || user.role === 'owner') {
+      return res.status(403).json({ error: 'Cannot hard delete admin or owner accounts' });
+    }
+    await User.findByIdAndDelete(userId);
+    // Audit log
+    console.log(`❌ [ADMIN] User hard-deleted: ${user.email} (${user._id}) by admin ${req.user}`);
+    res.json({ success: true, message: 'User permanently deleted', userId });
+  } catch (error) {
+    console.error('❌ Error hard-deleting user:', error);
+    res.status(500).json({ error: 'Failed to hard delete user' });
+  }
+});
+
+// @route   PATCH /api/admin/users/:id/delete
+// @desc    Soft delete a user (admin only)
+// @access  Admin only
+router.patch('/users/:id/delete', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    // Prevent deleting admin/owner accounts
+    if (user.role === 'admin' || user.role === 'owner') {
+      return res.status(403).json({ error: 'Cannot delete admin or owner accounts' });
+    }
+    // Soft delete: set isActive=false and status='deleted'
+    user.isActive = false;
+    user.status = 'deleted';
+    await user.save();
+    // Audit log
+    console.log(`🗑️ [ADMIN] User soft-deleted: ${user.email} (${user._id}) by admin ${req.user}`);
+    res.json({ success: true, message: 'User soft-deleted successfully', userId });
+  } catch (error) {
+    console.error('❌ Error soft-deleting user:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
 
 // Middleware to check if user is admin
 const adminMiddleware = (req, res, next) => {
@@ -25,78 +75,6 @@ const adminMiddleware = (req, res, next) => {
     res.status(403).json({ error: 'Access denied. Admin privileges required.' });
   }
 };
-
-// Apply auth middleware to all admin routes
-router.use(auth);
-router.use(adminMiddleware);
-
-// @route   GET /api/admin/dashboard
-// @desc    Get admin dashboard data with real statistics
-// @access  Admin only
-router.get('/dashboard', async (req, res) => {
-  try {
-    // Get real-time statistics
-    const totalUsers = await User.countDocuments({ role: 'user' });
-    const totalDoctors = await Doctor.countDocuments();
-    const activeDoctors = await Doctor.countDocuments({ approved: true, status: 'active' });
-    const pendingDoctors = await Doctor.countDocuments({ approved: false });
-    const totalAppointments = await Appointment.countDocuments();
-    const completedAppointments = await Appointment.countDocuments({ status: 'completed' });
-    const todayAppointments = await Appointment.countDocuments({
-      date: new Date().toISOString().split('T')[0]
-    });
-
-    // Calculate success rate
-    const successRate = totalAppointments > 0 ? 
-      Math.round((completedAppointments / totalAppointments) * 100) : 0;
-
-    // Get recent appointments (last 10)
-    const recentAppointments = await Appointment.find()
-      .populate('doctor', 'name specialization email')
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(10);
-
-    // Get pending doctors for approval
-    const pendingDoctorsList = await Doctor.find({ approved: false })
-      .sort({ createdAt: -1 });
-
-    // Get all doctors for management
-    const allDoctors = await Doctor.find()
-      .sort({ createdAt: -1 });
-
-    // Revenue analytics (reuse logic from /revenue-analytics)
-    const all = await Appointment.find({ status: 'completed' });
-    const sumField = (arr, field) => arr.reduce((sum, a) => sum + (a[field] || 0), 0);
-    const totalRevenue = sumField(all.map(a => a.payment || {}), 'totalAmount');
-    const totalCommission = sumField(all.map(a => a.payment || {}), 'platformCommission');
-    const totalDoctorEarnings = sumField(all.map(a => a.payment || {}), 'doctorEarnings');
-
-    const dashboardData = {
-      statistics: {
-        totalUsers,
-        totalDoctors,
-        activeDoctors,
-        pendingDoctors,
-        totalAppointments,
-        completedAppointments,
-        todayAppointments,
-        successRate,
-        totalRevenue,
-        totalCommission,
-        totalDoctorEarnings
-      },
-      recentAppointments,
-      pendingDoctors: pendingDoctorsList,
-      allDoctors
-    };
-
-    res.json(dashboardData);
-  } catch (error) {
-    console.error('❌ Error fetching admin dashboard data:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard data' });
-  }
-});
 
 // @route   POST /api/admin/doctors/:doctorId/approve
 // @desc    Approve doctor application and send email with access link
@@ -478,10 +456,25 @@ router.get('/pending-doctors', async (req, res) => {
 // @access  Admin only
 router.get('/users', async (req, res) => {
   try {
-    // For now, get the first admin (or you can use req.user if admin is logged in)
-    const admin = await Admin.findOne();
-    if (!admin) return res.status(404).json({ error: 'Admin not found' });
-    const users = await User.find({ _id: { $in: admin.userIds } }).select('-password');
+    // Debug: Print token and user info for troubleshooting
+    const authHeader = req.header('Authorization');
+    let decoded = null;
+    if (authHeader) {
+      const jwt = require('jsonwebtoken');
+      const token = authHeader.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : authHeader;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+      } catch (e) {
+        decoded = { error: e.message };
+      }
+    }
+    console.log('🔍 [ADMIN USERS] req.user:', req.user);
+    console.log('🔍 [ADMIN USERS] req.userRole:', req.userRole);
+    console.log('🔍 [ADMIN USERS] Decoded token:', decoded);
+    // Return all users for admin management
+    const users = await User.find().select('-password');
     res.json(users);
   } catch (error) {
     console.error('❌ Error fetching users for admin:', error);
