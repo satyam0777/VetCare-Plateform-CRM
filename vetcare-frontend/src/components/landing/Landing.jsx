@@ -253,7 +253,7 @@ const Landing = () => {
                   </div>
                 </div>
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-br from-blue-100 to-blue-200 flex flex-col items-center justify-center p-6">
-                  <h3 className="text-lg font-bold mb-4 text-blue-800 text-center">Expert Veterinarians</h3>
+                  <h3 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold mb-4 text-blue-800 text-center max-w-[120px] xs:max-w-[160px] sm:max-w-none truncate">Expert Veterinarians</h3>
                   <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl mb-4 shadow-lg">👨‍⚕️</div>
                   <div className="text-center">
                     <div className="bg-white rounded-xl p-3 shadow-sm mb-3"><div className="text-sm font-bold text-gray-800">Certified Vets</div><div className="text-xs text-gray-600">500+ Doctors</div></div>
