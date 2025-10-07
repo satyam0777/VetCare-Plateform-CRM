@@ -102,9 +102,9 @@ const CareerPortal = () => {
       console.log('Response headers:', response.headers);
       
       if (response.ok) {
-        const responseData = await response.json();
-        console.log('Success response:', responseData);
-        setSuccess('Application submitted successfully! You will be notified by email about the verification process.');
+  const responseData = await response.json();
+  console.log('Success response:', responseData);
+  setSuccess('Application submitted successfully! You will be notified by email about the verification process. If you do not see the email in your inbox, please check your spam folder.');
         setForm({ 
           name: '', 
           email: '', 

@@ -19,7 +19,7 @@ const ForgotPassword = () => {
     setMessage('');
     try {
       await api.post('/auth/forgot-password', { email });
-      setMessage('A reset code has been sent to your email.');
+  setMessage('A reset code has been sent to your email. If you do not see it in your inbox, please check your spam folder.');
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send reset code.');

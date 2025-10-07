@@ -400,7 +400,7 @@ const Landing = () => {
             <div className="flex space-x-4">
               <a href="https://github.com/satyam0777" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-xl flex items-center justify-center transition-colors"><span className="text-lg">💻</span></a>
               <a href="https://portfolio-rosy-tau-rws7s0np3k.vercel.app" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-xl flex items-center justify-center transition-colors"><span className="text-lg">🌐</span></a>
-              <a href="mailto:satyam0777@gmail.com" className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-xl flex items-center justify-center transition-colors"><span className="text-lg">�</span></a>
+              <a href="mailto:vetcare0777@gmail.com" className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-xl flex items-center justify-center transition-colors"><span className="text-lg">📧</span></a>
             </div>
           </div>
           {/* Quick Links */}
@@ -430,7 +430,7 @@ const Landing = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Contact & Support</h4>
             <ul className="space-y-3">
-              <li className="text-gray-400 flex items-center gap-2"><span>📧</span> <a href="mailto:satyam0777@gmail.com" className="hover:text-white transition-colors">satyam0777@gmail.com</a></li>
+              <li className="text-gray-400 flex items-center gap-2"><span>📧</span> <a href="mailto:vetcare0777@gmail.com" className="hover:text-white transition-colors">vetcare0777@gmail.com</a></li>
               <li className="text-gray-400 flex items-center gap-2"><span>⚡</span> 24/7 Emergency Support</li>
               <li className="text-gray-400 flex items-center gap-2"><span>🔒</span> Secure & Private</li>
               <li className="text-gray-400 flex items-center gap-2"><span>🌍</span> Serving All India</li>
@@ -519,7 +519,7 @@ const Landing = () => {
                 <h2 className="text-2xl font-bold mb-4 text-blue-700">Help Center</h2>
                 <p className="text-gray-700 mb-2">Need assistance? Our support team is available 24/7 to help you with any issues, from booking appointments to technical troubleshooting.</p>
                 <ul className="list-disc pl-6 text-gray-600 mb-2">
-                  <li>Email us at <a href="mailto:satyam0777@gmail.com" className="text-blue-600 underline">satyam0777@gmail.com</a></li>
+                  <li>Email us at <a href="mailto:vetcare0777@gmail.com" className="text-blue-600 underline">vetcare0777@gmail.com</a></li>
                   <li>Call us at <a href="tel:+917985792091" className="text-blue-600 underline">+91-7985792091</a></li>
                   <li>Check our <a href="/faq" className="text-blue-600 underline">FAQ</a> for common questions.</li>
                 </ul>

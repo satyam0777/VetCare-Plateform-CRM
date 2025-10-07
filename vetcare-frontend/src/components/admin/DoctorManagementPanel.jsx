@@ -44,10 +44,10 @@ const DoctorManagementPanel = () => {
     setSuccess('');
     
     try {
-      const response = await api.put(`/doctors/${doctor._id}/approve`);
+  const response = await api.post(`/admin/doctors/${doctor._id}/approve`, {});
       
       // Show success message with access link
-      setSuccess(`✅ Dr. ${doctor.name} approved successfully! Professional email sent with dashboard access link.`);
+  setSuccess(`✅ Dr. ${doctor.name} approved successfully! Professional email sent with dashboard access link. If you do not see the email in your inbox, please check your spam folder.`);
       
       // Update local state
       setPending(pending.filter(doc => doc._id !== doctor._id));
@@ -72,11 +72,11 @@ const DoctorManagementPanel = () => {
     setSuccess('');
     
     try {
-      await api.put(`/doctors/${doctor._id}/reject`, {
+      await api.post(`/admin/doctors/${doctor._id}/reject`, {
         reason: 'Application requirements not met at this time'
       });
       
-      setSuccess(`❌ Dr. ${doctor.name} application rejected. Professional notification email sent.`);
+  setSuccess(`❌ Dr. ${doctor.name} application rejected. Professional notification email sent. If you do not see the email in your inbox, please check your spam folder.`);
       
       // Update local state
       setPending(pending.filter(doc => doc._id !== doctor._id));
@@ -105,11 +105,11 @@ const DoctorManagementPanel = () => {
     setSuccess('');
     
     try {
-      await api.delete(`/doctors/${doctorToRemove._id}`, {
+      await api.delete(`/admin/doctors/${doctorToRemove._id}/remove`, {
         data: { reason: removalReason || 'Administrative decision' }
       });
       
-      setSuccess(`🗑️ Dr. ${doctorToRemove.name} removed successfully. Professional notification email sent.`);
+  setSuccess(`🗑️ Dr. ${doctorToRemove.name} removed successfully. Professional notification email sent. If you do not see the email in your inbox, please check your spam folder.`);
       
       // Update local state
       setApproved(approved.filter(doc => doc._id !== doctorToRemove._id));

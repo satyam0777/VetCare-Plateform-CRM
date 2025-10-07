@@ -54,7 +54,7 @@ const AdminDashboard = () => {
             activeDoctors: prev.statistics.activeDoctors + 1
           }
         }));
-        alert(`✅ Doctor approved successfully! Access link sent to ${response.data.doctor.email}`);
+            alert(`✅ Doctor approved successfully! Access link sent to ${response.data.doctor.email}. If you do not see the email in your inbox, please check your spam folder.`);
       }
     } catch (err) {
       console.error('Failed to approve doctor:', err);
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
             pendingDoctors: prev.statistics.pendingDoctors - 1
           }
         }));
-        alert(`✅ Doctor application rejected. Notification sent to ${response.data.doctor.email}`);
+            alert(`✅ Doctor application rejected. Notification sent to ${response.data.doctor.email}. If you do not see the email in your inbox, please check your spam folder.`);
       }
     } catch (err) {
       console.error('Failed to reject doctor:', err);
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
             activeDoctors: prev.statistics.activeDoctors - 1
           }
         }));
-        alert(`✅ Dr. ${doctorName} has been permanently removed. Notification email sent.`);
+            alert(`✅ Dr. ${doctorName} has been permanently removed. Notification email sent. If you do not see the email in your inbox, please check your spam folder.`);
       }
     } catch (err) {
       console.error('Failed to remove doctor:', err);

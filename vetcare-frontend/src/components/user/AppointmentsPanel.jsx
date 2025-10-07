@@ -125,7 +125,7 @@ const AppointmentsPanel = ({ doctors }) => {
         time: form.time,
       };
       const res = await api.post('/appointments', payload);
-      setSuccess('Appointment booked successfully!');
+  setSuccess('Appointment booked successfully! You will receive a confirmation email. If you do not see it in your inbox, please check your spam folder.');
       setAppointments([...appointments, res.data]);
       setForm({ doctor: '', petName: '', reason: '', date: '', time: '' });
     } catch (err) {

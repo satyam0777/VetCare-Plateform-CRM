@@ -55,7 +55,7 @@ const DoctorVerificationPanel = () => {
       });
 
       if (response.ok) {
-        alert('Doctor approved successfully! Email notification sent.');
+  alert('Doctor approved successfully! Email notification sent. If you do not see the email in your inbox, please check your spam folder.');
         fetchPendingDoctors();
         setSelectedDoctor(null);
         setVerificationNotes('');
@@ -96,7 +96,7 @@ const DoctorVerificationPanel = () => {
       });
 
       if (response.ok) {
-        alert('Doctor application rejected successfully. Professional rejection email sent.');
+  alert('Doctor application rejected successfully. Professional rejection email sent. If you do not see the email in your inbox, please check your spam folder.');
         fetchPendingDoctors();
         setSelectedDoctor(null);
         setVerificationNotes('');
