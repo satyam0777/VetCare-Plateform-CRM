@@ -63,7 +63,7 @@ class AdminController {
 
       res.json(dashboardData);
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to fetch dashboard data' });
     }
   }
@@ -115,7 +115,7 @@ class AdminController {
         }
       });
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to approve doctor' });
     }
   }
@@ -159,7 +159,7 @@ class AdminController {
         }
       });
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to reject doctor' });
     }
   }
@@ -195,7 +195,7 @@ class AdminController {
         }
       });
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to deactivate doctor' });
     }
   }
@@ -231,7 +231,7 @@ class AdminController {
         totalAppointments
       });
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to fetch appointments' });
     }
   }
@@ -267,7 +267,7 @@ class AdminController {
 
       return trends;
     } catch (error) {
-      console.error(
+      console.error(error);
       return [];
     }
   }
@@ -317,7 +317,7 @@ class AdminController {
 
       return topDoctors;
     } catch (error) {
-      console.error(
+      console.error(error);
       return [];
     }
   }
@@ -338,7 +338,7 @@ class AdminController {
 
       res.json(analytics);
     } catch (error) {
-      console.error(
+      console.error(error);
       res.status(500).json({ error: 'Failed to fetch analytics' });
     }
   }
@@ -367,7 +367,7 @@ class AdminController {
 
       return userGrowth;
     } catch (error) {
-      console.error(
+      console.error(error);
       return [];
     }
   }
@@ -397,7 +397,7 @@ class AdminController {
 
       return trends;
     } catch (error) {
-      console.error(
+      console.error(error);
       return [];
     }
   }
@@ -461,7 +461,7 @@ class AdminController {
 
       return performance;
     } catch (error) {
-      console.error(
+      console.error(error);
       return [];
     }
   }
@@ -486,7 +486,7 @@ class AdminController {
         completedAppointments
       };
     } catch (error) {
-      console.error(
+      console.error(error);
       return {
         totalRevenue: 0,
         platformFee: 0,
