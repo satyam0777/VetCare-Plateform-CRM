@@ -273,6 +273,21 @@ const SupportPanel = () => {
           </div>
         </div>
       </div>
+
+      {/* Important Platform Tips Section */}
+      <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-emerald-50 to-blue-50 backdrop-blur-sm rounded-lg sm:rounded-xl border border-emerald-200/30">
+        <h4 className="font-semibold text-emerald-700 mb-2 sm:mb-3 flex items-center space-x-2 text-sm sm:text-base">
+          <span className="text-emerald-600">💡</span>
+          <span>Important Platform Tips</span>
+        </h4>
+        <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm text-gray-700">
+          <li><b>Check Your Email:</b> For important updates, appointment confirmations, and password resets, always check your email inbox.</li>
+          <li><b>Spam/Junk Folder:</b> If you don’t see our emails, please check your spam or junk folder and mark VetCare emails as “Not Spam.”</li>
+          <li><b>Add Us to Contacts:</b> Add <a href="mailto:vetcare0777@gmail.com" className="text-blue-600 underline">vetcare0777@gmail.com</a> to your contacts to ensure you always receive our emails.</li>
+          <li><b>Platform Notifications:</b> Key updates and reminders will also appear here in your VetCare dashboard.</li>
+          <li><b>Need Help?</b> For any issues, contact our support team at <a href="mailto:vetcare0777@gmail.com" className="text-blue-600 underline">vetcare0777@gmail.com</a> or visit the Support Center above.</li>
+        </ul>
+      </div>
     </div>
   );
 };
