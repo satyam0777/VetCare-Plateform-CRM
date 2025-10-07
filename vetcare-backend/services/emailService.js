@@ -78,9 +78,10 @@ async function initializeEmailService() {
 
 function generateDoctorAccessLink(doctorId) {
     const token = `doc_${doctorId}_${Date.now()}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return {
         uniqueToken: token,
-        accessLink: `http://localhost:3000/doctor-dashboard/${token}` // ✅ Fixed: Use frontend URL
+        accessLink: `${frontendUrl.replace(/\/$/, '')}/doctor-dashboard/${token}` // Uses deployed frontend URL if set
     };
 }
 
