@@ -233,10 +233,10 @@ const adminMiddleware = (req, res, next) => {
 // @route   POST /api/admin/doctors/:doctorId/approve
 // @desc    Approve doctor application and send email with access link
 // @access  Admin only
-router.post('/doctors/:doctorId/approve', async (req, res) => {
+router.post('/doctors/:doctorId/approve', auth, adminMiddleware, async (req, res) => {
   try {
-    const { doctorId } = req.params;
-    const { welcomeMessage } = req.body;
+  const { doctorId } = req.params;
+  const { welcomeMessage } = req.body || {};
 
     // Find the doctor
     const doctor = await Doctor.findById(doctorId);
@@ -289,7 +289,7 @@ router.post('/doctors/:doctorId/approve', async (req, res) => {
 // @route   POST /api/admin/doctors/:doctorId/reject
 // @desc    Reject doctor application and send notification email
 // @access  Admin only
-router.post('/doctors/:doctorId/reject', async (req, res) => {
+router.post('/doctors/:doctorId/reject', auth, adminMiddleware, async (req, res) => {
   try {
     const { doctorId } = req.params;
     const { reason } = req.body;
@@ -332,7 +332,7 @@ router.post('/doctors/:doctorId/reject', async (req, res) => {
 // @route   POST /api/admin/doctors/:doctorId/deactivate
 // @desc    Deactivate an active doctor
 // @access  Admin only
-router.post('/doctors/:doctorId/deactivate', async (req, res) => {
+router.post('/doctors/:doctorId/deactivate', auth, adminMiddleware, async (req, res) => {
   try {
     const { doctorId } = req.params;
     const { reason } = req.body;
@@ -349,9 +349,17 @@ router.post('/doctors/:doctorId/deactivate', async (req, res) => {
 
     await doctor.save();
 
+    // Send removal/deactivation email to doctor
+    try {
+      await emailService.sendDoctorRemovalEmail(doctor, reason);
+    } catch (emailError) {
+      console.error('Failed to send deactivation email:', emailError.message);
+      // Don't fail the deactivation if email fails
+    }
+
     res.json({
       success: true,
-      message: 'Doctor deactivated successfully',
+      message: 'Doctor deactivated successfully and email sent',
       doctor: {
         id: doctor._id,
         name: doctor.name,

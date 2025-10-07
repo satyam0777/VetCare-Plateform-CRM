@@ -182,9 +182,12 @@ class AdminController {
 
       await doctor.save();
 
+      // Send removal/deactivation email to doctor
+      await emailService.sendDoctorRemovalEmail(doctor, reason);
+
       res.json({
         success: true,
-        message: 'Doctor deactivated successfully',
+        message: 'Doctor deactivated successfully and email sent',
         doctor: {
           id: doctor._id,
           name: doctor.name,
