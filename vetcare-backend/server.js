@@ -39,12 +39,13 @@ const upload = require('./middleware/upload');
 // ✅ Initialize email service after dotenv is loaded
 const { initializeEmailService, sendEmail } = require('./services/emailService');
 initializeEmailService().then(async () => {
-  // Send a test email on server startup
+  // Send a test email on server startup using the main sendEmail (SendGrid in prod)
   try {
     const testTo = process.env.EMAIL_USER || 'vetcare0777@gmail.com';
     const testSubject = '[VetCare] Test Email on Startup';
     const testHtml = '<b>This is a test email sent automatically when the server starts.</b>';
-    await sendEmail({ to: testTo, subject: testSubject, html: testHtml });
+    const result = await sendEmail({ to: testTo, subject: testSubject, html: testHtml });
+    console.log('📧 [Startup Test] Email result:', result);
   } catch (e) {
     console.error('❌ Test email send failed:', e);
   }
