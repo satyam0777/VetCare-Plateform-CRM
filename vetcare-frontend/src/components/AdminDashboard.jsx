@@ -526,7 +526,7 @@ const AdminDashboard = () => {
                               path && (
                                 <button
                                   key={type}
-                                  onClick={() => window.open(`http://localhost:5000/api/files/${path.split('\\').pop()}`, '_blank')}
+                                  onClick={() => window.open(`${import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.onrender.com/api'}/files/${path.split('\\').pop()}`, '_blank')}
                                   className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-md hover:bg-blue-200 transition-colors capitalize"
                                 >
                                   📄 {type.replace(/([A-Z])/g, ' $1').trim()}

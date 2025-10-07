@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.onrender.com/api';
 
 const ReportsPanel = ({ doctorLink }) => {
   const [reports, setReports] = useState([]);
@@ -87,7 +88,7 @@ const ReportsPanel = ({ doctorLink }) => {
       }
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/reports/doctor/${doctorId}/analytics`, {
+  const response = await fetch(`${API_URL}/reports/doctor/${doctorId}/analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ const ReportsPanel = ({ doctorLink }) => {
 
       const [year, month] = selectedDate.split('-');
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/reports/doctor/${doctorId}/analytics?month=${month}&year=${year}`, {
+  const response = await fetch(`${API_URL}/reports/doctor/${doctorId}/analytics?month=${month}&year=${year}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

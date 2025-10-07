@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.onrender.com/api';
 import { FiFileText, FiUser, FiPhone, FiCheckCircle, FiXCircle, FiEye, FiDownload, FiTrash2 } from 'react-icons/fi';
 
 const DoctorVerificationPanel = () => {
@@ -22,7 +23,7 @@ const DoctorVerificationPanel = () => {
   const fetchPendingDoctors = async () => {
     try {
       console.log('Making API call to /api/doctors/pending...');
-      const response = await fetch('http://localhost:5000/api/doctors/pending');
+  const response = await fetch(`${API_URL}/doctors/pending`);
       console.log('API response status:', response.status);
       const data = await response.json();
       console.log('API response data:', data);
@@ -85,7 +86,7 @@ const DoctorVerificationPanel = () => {
 
     setProcessingId(doctorToReject._id);
     try {
-      const response = await fetch(`http://localhost:5000/api/doctors/${doctorToReject._id}/reject`, {
+  const response = await fetch(`${API_URL}/doctors/${doctorToReject._id}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +210,7 @@ const DoctorVerificationPanel = () => {
       } else {
         // Otherwise, fallback to local API route, always use just the filename
         const filenameOnly = getLocalFilename(path);
-        const response = await fetch(`http://localhost:5000/api/files/${filenameOnly}`);
+  const response = await fetch(`${API_URL}/files/${filenameOnly}`);
         if (!response.ok) throw new Error('Download failed');
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -248,7 +249,7 @@ const DoctorVerificationPanel = () => {
                     window.open(path, '_blank');
                   } else {
                     const filenameOnly = getLocalFilename(path);
-                    window.open(`http://localhost:5000/api/files/${filenameOnly}`, '_blank');
+                    window.open(`${API_URL}/files/${filenameOnly}`, '_blank');
                   }
                 }}
                 className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm"

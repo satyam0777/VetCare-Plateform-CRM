@@ -6,13 +6,14 @@ const ReportPaymentModal = ({ isOpen, onClose, report, onPaymentSuccess }) => {
 
   if (!isOpen) return null;
 
+  const API_URL = import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.onrender.com/api';
   const handlePayment = async () => {
     setLoading(true);
     setError('');
 
     try {
       // Create payment order
-      const response = await fetch('http://localhost:5000/api/payments/report/create-order', {
+  const response = await fetch(`${API_URL}/payments/report/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,7 +47,7 @@ const ReportPaymentModal = ({ isOpen, onClose, report, onPaymentSuccess }) => {
         handler: async function (response) {
           try {
             // Verify payment
-            const verifyResponse = await fetch('http://localhost:5000/api/payments/report/verify', {
+            const verifyResponse = await fetch(`${API_URL}/payments/report/verify`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

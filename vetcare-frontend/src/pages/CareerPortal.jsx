@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+const API_URL = import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.onrender.com/api';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
@@ -93,7 +94,7 @@ const CareerPortal = () => {
         }
       });
       
-      const response = await fetch('http://localhost:5000/api/doctors', {
+  const response = await fetch(`${API_URL}/doctors`, {
         method: 'POST',
         body: formData,
       });
