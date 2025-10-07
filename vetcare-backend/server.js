@@ -63,6 +63,19 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Test email endpoint for debugging SendGrid integration
+app.get('/api/test-email', async (req, res) => {
+  const to = process.env.TEST_EMAIL_TO || 'vetcare0777@gmail.com';
+  const subject = '[VetCare] Test Email from /api/test-email';
+  const text = 'This is a test email sent from the /api/test-email endpoint.';
+  try {
+    const result = await sendEmail({ to, subject, text });
+    res.json({ success: result.success, message: result.message });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Socket.IO setup for real-time features
 const io = socketIO(server, {
   cors: {
