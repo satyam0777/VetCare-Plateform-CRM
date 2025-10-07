@@ -283,6 +283,30 @@ router.post("/register", async (req, res) => {
     // Fetch full user info (excluding password)
     const userInfo = await User.findById(user._id).select('-password');
 
+    // Send welcome email
+    const emailService = require('../services/emailService');
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: 'Welcome to VetCare!',
+        html: `
+          <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px #0001;">
+            <div style="background:linear-gradient(135deg,#059669 0%,#2563eb 100%);padding:32px 24px;text-align:center;color:#fff;">
+              <h2 style="margin-bottom:8px;">Welcome to VetCare!</h2>
+              <div style="font-size:18px;">Your account has been created</div>
+            </div>
+            <div style="padding:32px 24px;">
+              <p style="font-size:16px;">Dear ${user.name},</p>
+              <p>Thank you for registering on VetCare. We’re excited to have you on board!</p>
+              <p style="color:#6b7280;font-size:14px;">If you have any questions, contact us at <a href="mailto:support@vetcare.com">support@vetcare.com</a></p>
+            </div>
+            <div style="background:#f3f4f6;color:#6b7280;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
+          </div>
+        `
+      });
+    } catch (e) {
+      console.error('Failed to send welcome email:', e);
+    }
     // Send response
     res.status(201).json({
       message: "User registered successfully",
@@ -300,117 +324,53 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const Admin = require('../models/Admin');
   const emailService = require('../services/emailService');
-
   try {
-    // Debug: Log incoming login request
-    console.log('🔐 [LOGIN] Attempt:', { email });
-    // Check if this is an admin login attempt (by email)
-    const admin = await Admin.findOne({ email });
+    // Check admin first
+    let admin = await Admin.findOne({ email });
     if (admin) {
-      console.log('🔐 [LOGIN] Admin found:', { adminId: admin._id, email: admin.email });
-      // Compare hashed password
       const isMatch = await bcrypt.compare(password, admin.password);
-      if (!isMatch) {
-        console.log('❌ [LOGIN] Invalid admin password');
-        return res.status(401).json({ message: "Invalid admin credentials" });
-      }
-
-      // Create JWT token for admin
-      const tokenPayload = { id: admin._id, email: admin.email, role: 'admin' };
-      const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
-      console.log('✅ [LOGIN] Admin login successful, token payload:', tokenPayload);
-
-      // Send login notification email
+      if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+      const token = jwt.sign({ id: admin._id, email: admin.email, role: 'admin' }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      // Send admin login notification
       try {
-        const loginTime = new Date().toLocaleString();
         await emailService.sendEmail({
           to: admin.email,
           subject: 'VetCare Admin Login Notification',
-          html: `
-            <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:650px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px #0001;">
-              <div style="background:linear-gradient(135deg,#16a34a 0%,#059669 100%);padding:40px 30px;text-align:center;color:#fff;">
-                <h2 style="margin-bottom:8px;">VetCare Admin Login Alert</h2>
-                <div style="font-size:18px;">Professional Platform</div>
-              </div>
-              <div style="padding:40px 30px;">
-                <p style="font-size:16px;">Dear <b>${admin.name || 'Admin'}</b>,</p>
-                <p style="margin:18px 0 24px 0;">A login to your VetCare admin account was detected on <b>${loginTime}</b>.</p>
-                <div style="background:#f0fdf4;padding:16px;border-radius:8px;margin-bottom:18px;">
-                  <b>If this was you</b>, you can safely ignore this email.<br/>
-                  <b>If this was <span style='color:#dc2626;'>not</span> you</b>, please <a href="https://vetcare.com/admin/forgot-password" style="color:#059669;font-weight:bold;">reset your password immediately</a> and contact support.
-                </div>
-                <ul style="margin:18px 0 24px 0;padding:0;list-style:none;font-size:15px;">
-                  <li><b>Account:</b> ${admin.email}</li>
-                  <li><b>Login Time:</b> ${loginTime}</li>
-                </ul>
-                <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:15px;margin:20px 0;font-size:13px;color:#92400e;">
-                  <b>Security Notice:</b> Never share your credentials. If you suspect unauthorized access, contact <a href="mailto:support@vetcare.com" style="color:#16a34a;">support@vetcare.com</a> immediately.
-                </div>
-                <p style="color:#6b7280;font-size:14px;margin-top:30px;">For help, our team is available 24/7 at <a href="mailto:support@vetcare.com" style="color:#16a34a;">support@vetcare.com</a> or <b>+91-7985792091</b>.</p>
-              </div>
-              <div style="background:#1f2937;color:#d1d5db;padding:30px;text-align:center;font-size:13px;">
-                VetCare Professional Platform<br/>
-                Revolutionizing veterinary care across India<br/>
-                <a href="https://vetcare.com/support" style="color:#60a5fa;">Support Center</a> |
-                <a href="https://vetcare.com/privacy" style="color:#60a5fa;">Privacy Policy</a> |
-                <a href="https://vetcare.com/terms" style="color:#60a5fa;">Terms of Service</a>
-              </div>
-            </div>
-          `
+          html: `<div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px #0001;"><div style="background:linear-gradient(135deg,#16a34a 0%,#059669 100%);padding:32px 24px;text-align:center;color:#fff;"><h2 style="margin-bottom:8px;">Admin Login Notification</h2><div style="font-size:18px;">VetCare Platform</div></div><div style="padding:32px 24px;"><p style="font-size:16px;">Dear ${admin.name || 'Admin'},</p><p>Your admin account was just logged in at <b>${new Date().toLocaleString()}</b>.</p><p style="color:#6b7280;font-size:14px;">If this wasn’t you, please reset your password immediately or contact support.</p><a href="mailto:support@vetcare.com" style="display:inline-block;margin-top:18px;color:#fff;background:#059669;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:bold;">Contact Support</a></div><div style="background:#f3f4f6;color:#6b7280;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div></div>`
         });
       } catch (e) {
         console.error('Failed to send admin login notification:', e);
       }
-
       return res.json({
         message: "Admin login successful",
         token,
-        user: {
-          _id: admin._id,
-          name: admin.name,
-          email: admin.email,
-          role: 'admin',
-          isSystemAdmin: true
-        }
+        user: { name: admin.name, email: admin.email, role: 'admin' },
       });
     }
-
-  // Regular user authentication (existing logic)
-  // Debug: Not an admin, checking user
+    // User login
     const user = await User.findOne({ email });
-    if (!user) {
-      console.log('❌ [LOGIN] User not found');
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check password
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log('❌ [LOGIN] Invalid user password');
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check if user is deactivated
-    if (user.isActive === false) {
-      return res.status(403).json({ message: "Your account is deactivated. Please contact VetCare support or request reactivation." });
-    }
-
-    // Create JWT token
-    const userTokenPayload = { id: user._id, email: user.email, role: user.role };
-    const token = jwt.sign(userTokenPayload, process.env.JWT_SECRET, { expiresIn: "7d" });
-    console.log('✅ [LOGIN] User login successful, token payload:', userTokenPayload);
-
-    // Fetch full user info (excluding password)
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
     const userInfo = await User.findById(user._id).select('-password');
-
-    // Send response
-    res.status(200).json({
-      message: "Login successful",
+    // Send login notification email
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: 'VetCare Login Notification',
+        html: `<div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px #0001;"><div style="background:linear-gradient(135deg,#059669 0%,#2563eb 100%);padding:32px 24px;text-align:center;color:#fff;"><h2 style="margin-bottom:8px;">Login Notification</h2><div style="font-size:18px;">VetCare Platform</div></div><div style="padding:32px 24px;"><p style="font-size:16px;">Dear ${user.name},</p><p>Your account was just logged in at <b>${new Date().toLocaleString()}</b>.</p><p style="color:#6b7280;font-size:14px;">If this wasn’t you, please reset your password immediately or contact support.</p><a href="mailto:support@vetcare.com" style="display:inline-block;margin-top:18px;color:#fff;background:#059669;padding:10px 28px;border-radius:8px;text-decoration:none;font-weight:bold;">Contact Support</a></div><div style="background:#f3f4f6;color:#6b7280;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div></div>`
+      });
+    } catch (e) {
+      console.error('Failed to send login notification email:', e);
+    }
+    res.json({
+      message: "User login successful",
       token,
       user: userInfo,
     });
-  } catch (err) {
-    console.error("Login error:", err);
+  } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ message: "Server error during login" });
   }
 });
