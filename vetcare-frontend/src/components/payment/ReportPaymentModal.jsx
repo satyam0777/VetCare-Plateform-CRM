@@ -138,16 +138,17 @@ const ReportPaymentModal = ({ isOpen, onClose, report, onPaymentSuccess }) => {
           </div>
         </div>
 
-        {/* Payment Amount */}
+        {/* Payment Breakdown */}
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 mb-6 border border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-600">Consultation Fee</div>
-              <div className="text-2xl font-bold text-green-700">
-                ₹{report.cost?.total || 500}
-              </div>
-            </div>
-            <div className="text-4xl">💰</div>
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-lg font-semibold text-green-700">Payment Breakdown</div>
+            <div className="text-3xl">💰</div>
+          </div>
+          <div className="space-y-1 text-sm text-gray-700">
+            <div className="flex justify-between"><span>Consultation Fee:</span> <span>₹{report.cost?.consultationFee || 0}</span></div>
+            <div className="flex justify-between"><span>Platform Fee:</span> <span>₹{report.cost?.platformFee || 0}</span></div>
+            <div className="flex justify-between"><span>Tax (5%):</span> <span>₹{report.cost?.tax || 0}</span></div>
+            <div className="flex justify-between font-bold"><span>Total Amount:</span> <span>₹{report.cost?.total || 500}</span></div>
           </div>
         </div>
 

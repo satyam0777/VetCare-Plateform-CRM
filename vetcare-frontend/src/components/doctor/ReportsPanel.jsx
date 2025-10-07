@@ -528,9 +528,12 @@ const ReportsPanel = ({ doctorLink }) => {
                           <p className="text-sm text-gray-600 mb-1">
                             <span className="font-medium">Diagnosis:</span> {report.diagnosis || 'Not specified'}
                           </p>
-                          <p className="text-sm text-gray-600">
-                            <span className="font-medium">Total Cost:</span> ₹{report.cost?.total || 0}
-                          </p>
+                          <div className="text-sm text-gray-600">
+                            <div><span className="font-medium">Consultation Fee:</span> ₹{report.cost?.consultationFee || 0}</div>
+                            <div><span className="font-medium">Platform Fee:</span> ₹{report.cost?.platformFee || 0}</div>
+                            <div><span className="font-medium">Tax (5%):</span> ₹{report.cost?.tax || 0}</div>
+                            <div><span className="font-medium">Total Cost:</span> <span className="font-bold">₹{report.cost?.total || 0}</span></div>
+                          </div>
                         </div>
                       </div>
 
