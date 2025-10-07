@@ -218,7 +218,7 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
     }
     
     const { consultation = {}, prescription = {}, consultationFee = 500 } = req.body;
-    
+
     const appointment = await Appointment.findById(req.params.id)
       .populate('doctor', 'name specialization email')
       .populate('user', 'name email petName');
@@ -255,19 +255,27 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
     appointment.completedAt = new Date();
     appointment.reportGenerated = true;
     appointment.reportGeneratedAt = new Date();
-    
-    // Set consultation fee for payment
-    if (consultationFee) {
-      appointment.payment = {
-        consultationFee: consultationFee,
-        platformFee: Math.round(consultationFee * 0.15), // 15% platform fee
-        totalAmount: Math.round(consultationFee * 1.15), // Including platform fee
-        status: 'pending',
-        createdAt: new Date()
-      };
-    }
-    
+
+    // --- Add tax and update payment breakdown ---
+    const platformFee = Math.round(consultationFee * 0.15); // 15% platform fee
+    const taxRate = 0.05; // 5% GST or service tax
+    const tax = Math.round(consultationFee * taxRate);
+    const totalAmount = consultationFee + platformFee + tax;
+
+    appointment.payment = {
+      consultationFee: consultationFee,
+      platformFee: platformFee,
+      tax: tax,
+      totalAmount: totalAmount,
+      status: 'pending',
+      createdAt: new Date()
+    };
+
     await appointment.save();
+    // Fetch the latest appointment (with updated payment) for email
+    const updatedAppointment = await Appointment.findById(req.params.id)
+      .populate('doctor', 'name specialization email')
+      .populate('user', 'name email petName');
     console.log(`✅ Appointment status updated to report_ready - waiting for payment`);
 
     // Find or create animal record for the pet
@@ -314,9 +322,11 @@ router.put('/:id/complete', doctorAuth, async (req, res) => {
         instructions: med.instructions || 'Take as prescribed'
       })) || [],
       cost: {
-        consultationFee: appointment.payment?.consultationFee || 0,
-        medicinesCost: appointment.payment?.medicineCharges || 0,
-        total: appointment.payment?.totalAmount || 0
+  consultationFee: appointment.payment?.consultationFee || 0,
+  platformFee: appointment.payment?.platformFee || 0,
+  tax: appointment.payment?.tax || 0,
+  medicinesCost: appointment.payment?.medicineCharges || 0,
+  total: appointment.payment?.totalAmount || 0
       },
       status: 'completed',
       doctorNotes: appointment.consultation?.notes || ''

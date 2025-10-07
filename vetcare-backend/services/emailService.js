@@ -344,11 +344,12 @@ async function sendConsultationCompletedEmail({ user, doctor, appointment, repor
             ${report.prescriptions.map(med => `<li><b>${med.medicineName}</b> - ${med.dosage || ''} ${med.frequency || ''} ${med.duration || ''} ${med.instructions || ''}</li>`).join('')}
           </ul>`
         : '<div style="color:#64748b;">No medicines prescribed.</div>';
-    // Payment breakdown
+    // Payment breakdown (now includes tax)
     const paymentHtml = `
         <table style="width:100%;border-collapse:collapse;margin:18px 0 12px 0;">
             <tr><td style="padding:6px 0;">Consultation Fee:</td><td style="text-align:right;">₹${payment.consultationFee || 0}</td></tr>
             <tr><td style="padding:6px 0;">Platform Fee:</td><td style="text-align:right;">₹${payment.platformFee || 0}</td></tr>
+            <tr><td style="padding:6px 0;">Tax (5%):</td><td style="text-align:right;">₹${payment.tax || 0}</td></tr>
             <tr><td style="padding:6px 0;">Total Amount:</td><td style="text-align:right;font-weight:bold;">₹${payment.totalAmount || 0}</td></tr>
         </table>
     `;
@@ -385,6 +386,15 @@ async function sendConsultationCompletedEmail({ user, doctor, appointment, repor
 
 async function sendConsultationCompletedDoctorEmail({ doctor, user, appointment, report }) {
     const subject = `📋 Consultation Completed - ${user.name} (${appointment.petName})`;
+    const payment = appointment.payment || {};
+    const paymentHtml = `
+        <table style="width:100%;border-collapse:collapse;margin:18px 0 12px 0;">
+            <tr><td style="padding:6px 0;">Consultation Fee:</td><td style="text-align:right;">₹${payment.consultationFee || 0}</td></tr>
+            <tr><td style="padding:6px 0;">Platform Fee:</td><td style="text-align:right;">₹${payment.platformFee || 0}</td></tr>
+            <tr><td style="padding:6px 0;">Tax (5%):</td><td style="text-align:right;">₹${payment.tax || 0}</td></tr>
+            <tr><td style="padding:6px 0;">Total Amount:</td><td style="text-align:right;font-weight:bold;">₹${payment.totalAmount || 0}</td></tr>
+        </table>
+    `;
     const html = `
         <div style="font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;">
             <div style="background:linear-gradient(135deg,#059669 0%,#f59e42 100%);padding:32px 24px;text-align:center;color:#fff;">
@@ -395,6 +405,8 @@ async function sendConsultationCompletedDoctorEmail({ doctor, user, appointment,
                 <p>Dear Dr. ${doctor.name},</p>
                 <p>Your consultation with <b>${user.name}</b> for <b>${appointment.petName}</b> is now complete.</p>
                 <div style="background:#fef9c3;padding:16px;border-radius:8px;margin-bottom:18px;">The medical report has been generated and payment notification sent to the user.</div>
+                <h3 style="margin:24px 0 8px 0;color:#059669;">Payment Breakdown</h3>
+                ${paymentHtml}
             </div>
             <div style="background:#1f2937;color:#d1d5db;padding:18px;text-align:center;font-size:13px;">VetCare Professional Platform</div>
         </div>
