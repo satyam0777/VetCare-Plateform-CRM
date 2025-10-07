@@ -184,7 +184,13 @@ router.post('/', upload.doctorDocuments, async (req, res) => {
         </div>
       `;
       
-      await emailService.sendEmail(doctor.email, subject, htmlContent);
+        console.log('📧 [ROUTE] Sending doctor registration confirmation to:', doctor.email);
+        const emailResult = await emailService.sendEmail({
+          to: doctor.email,
+          subject,
+          html: htmlContent
+        });
+        console.log('📧 [ROUTE] Email result:', emailResult);
       console.log(`✅ Confirmation email sent to Dr. ${doctor.name}`);
     } catch (emailError) {
       console.error('❌ Failed to send confirmation email:', emailError);

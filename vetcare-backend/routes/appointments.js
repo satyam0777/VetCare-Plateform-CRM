@@ -65,16 +65,20 @@ router.post('/', auth, checkPaymentStatus, async (req, res) => {
     // Send email to user and doctor (company-style)
     try {
       const emailService = require('../services/emailService');
-      await emailService.sendAppointmentBookedEmail({
+      console.log('📧 [ROUTE] Sending appointment booked email to user:', savedAppointment.user.email);
+      const userEmailResult = await emailService.sendAppointmentBookedEmail({
         user: savedAppointment.user,
         doctor: savedAppointment.doctor,
         appointment: savedAppointment
       });
-      await emailService.sendAppointmentBookedDoctorEmail({
+      console.log('📧 [ROUTE] User email result:', userEmailResult);
+      console.log('📧 [ROUTE] Sending appointment booked email to doctor:', savedAppointment.doctor.email);
+      const doctorEmailResult = await emailService.sendAppointmentBookedDoctorEmail({
         doctor: savedAppointment.doctor,
         user: savedAppointment.user,
         appointment: savedAppointment
       });
+      console.log('📧 [ROUTE] Doctor email result:', doctorEmailResult);
     } catch (emailErr) {
       console.error('❌ Failed to send appointment emails:', emailErr);
     }

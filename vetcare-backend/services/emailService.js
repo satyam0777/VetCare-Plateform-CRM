@@ -1,5 +1,13 @@
 ﻿// Generic sendEmail function for password reset and other notifications
+
+// Use SendGrid if SENDGRID_API_KEY is set, otherwise fallback to Nodemailer (local dev)
+const sendgrid = require('../sendgrid');
 async function sendEmail({ to, subject, text, html }) {
+    console.log('📧 [sendEmail] Called with:', { to, subject });
+    if (process.env.SENDGRID_API_KEY) {
+        // Use SendGrid in production
+        return await sendgrid.sendEmail({ to, subject, text, html });
+    }
     if (!transporter) {
         console.log('⚠️ Email not sent - transporter unavailable');
         return { success: false, message: 'Email transporter unavailable' };
@@ -13,10 +21,11 @@ async function sendEmail({ to, subject, text, html }) {
             html
         };
         const result = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent:', result.messageId);
+        console.log('✅ Email sent:', result.messageId, '| To:', to, '| Subject:', subject);
         return { success: true, messageId: result.messageId };
     } catch (error) {
-        console.log('❌ Email send failed:', error.message);
+        console.log('❌ Email send failed:', error.message, '| To:', to, '| Subject:', subject);
+        console.error(error);
         return { success: false, message: error.message };
     }
 }

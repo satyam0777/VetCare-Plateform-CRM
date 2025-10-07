@@ -55,7 +55,8 @@ router.post('/admin/forgot-password', async (req, res) => {
 
     // Send code via email
     const emailService = require('../services/emailService');
-    await emailService.sendEmail({
+    console.log('📧 [ROUTE] Sending admin password reset code to:', admin.email);
+    const emailResult = await emailService.sendEmail({
       to: admin.email,
       subject: 'VetCare Admin Password Reset Code',
       html: `
@@ -76,7 +77,8 @@ router.post('/admin/forgot-password', async (req, res) => {
       `
     });
 
-    res.json({ message: 'Admin password reset code sent to email' });
+  console.log('📧 [ROUTE] Email result:', emailResult);
+  res.json({ message: 'Admin password reset code sent to email' });
   } catch (error) {
     console.error('Admin forgot password error:', error);
     res.status(500).json({ message: 'Error sending admin reset code' });
@@ -150,7 +152,8 @@ router.post('/forgot-password', async (req, res) => {
 
     // Send code via email
     const emailService = require('../services/emailService');
-    await emailService.sendEmail({
+    console.log('📧 [ROUTE] Sending user password reset code to:', user.email);
+    const emailResult = await emailService.sendEmail({
       to: user.email,
       subject: 'VetCare Password Reset Code',
       html: `
@@ -171,7 +174,8 @@ router.post('/forgot-password', async (req, res) => {
       `
     });
 
-    res.json({ message: 'Password reset code sent to email' });
+  console.log('📧 [ROUTE] Email result:', emailResult);
+  res.json({ message: 'Password reset code sent to email' });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ message: 'Error sending reset code' });
