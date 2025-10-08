@@ -482,7 +482,7 @@ const Landing = () => {
             {openModal === 'privacy' && (
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-blue-700">Privacy Policy</h2>
-                <p className="text-gray-700 mb-2">We value your privacy. VetCare collects only the information necessary to provide our services and never shares your data with third parties without your consent. All data is encrypted and stored securely. You can request data deletion at any time by contacting us at <a href="mailto:satyam0777@gmail.com" className="text-blue-600 underline">satyam0777@gmail.com</a>.</p>
+                <p className="text-gray-700 mb-2">We value your privacy. VetCare collects only the information necessary to provide our services and never shares your data with third parties without your consent. All data is encrypted and stored securely. You can request data deletion at any time by contacting us at <a href="mailto:vetcare0777@gmail.com" className="text-blue-600 underline">vetcare0777@gmail.com</a>.</p>
                 <ul className="list-disc pl-6 text-gray-600 mb-2">
                   <li>Personal data is used only for account management and service delivery.</li>
                   <li>We do not sell or rent your information.</li>
