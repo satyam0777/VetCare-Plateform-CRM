@@ -20,8 +20,20 @@ VetCare is a modern, full-stack veterinary care management platform that connect
 ### Doctor Panel
 ![Doctor Panel](./screenshots/doctorpge.png)
 
+### Doctor Features
+![Doctor Features](./screenshots/doctorfeacture.png)
+
 ### Email recive for all things ,just like Doctor Approved
 ![Doctor Approved](./screenshots/email.png)
+
+### User Report & Bill
+![Report & Bill](./screenshots/userreport.png)
+
+### Report Card
+![Report Care](./screenshots/report.png)
+
+
+### For Knowing all the Feature , register for user , Apply to join as Docotr .
 
 
 ##  Key Features
