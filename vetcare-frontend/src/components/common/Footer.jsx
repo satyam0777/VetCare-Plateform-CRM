@@ -68,8 +68,8 @@ const Footer = () => {
               <ul className="space-y-3">
                 <li className="text-gray-400 flex items-center gap-2">
                   <span>📧</span> 
-                  <a href="mailto:satyam0777@gmail.com" className="hover:text-white transition-colors">
-                    satyam0777@gmail.com
+                  <a href="mailto:vetcare0777@gmail.com" className="hover:text-white transition-colors">
+                    vetcare0777@gmail.com
                   </a>
                 </li>
                 <li className="text-gray-400 flex items-center gap-2"><span>⚡</span> 24/7 Emergency Support</li>

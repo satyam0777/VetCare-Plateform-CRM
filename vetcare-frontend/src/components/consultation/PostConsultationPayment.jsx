@@ -44,7 +44,7 @@ const PostConsultationPayment = () => {
       setLoading(false);
 
     } catch (err) {
-      console.error('❌ Error checking payment:', err);
+      console.error(' Error checking payment:', err);
       setError(err.message);
       setLoading(false);
     }
@@ -55,7 +55,7 @@ const PostConsultationPayment = () => {
   };
 
   const handlePaymentSuccess = (paymentResult) => {
-    console.log('✅ Payment successful:', paymentResult);
+    console.log(' Payment successful:', paymentResult);
     
     // Show success message and redirect
     navigate('/dashboard', {
@@ -68,7 +68,7 @@ const PostConsultationPayment = () => {
   };
 
   const handlePaymentError = (error) => {
-    console.error('❌ Payment failed:', error);
+    console.error(' Payment failed:', error);
     setError(`Payment failed: ${error.description || 'Unknown error'}`);
     setShowPayment(false);
   };

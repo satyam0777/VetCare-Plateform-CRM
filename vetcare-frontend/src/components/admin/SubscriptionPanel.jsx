@@ -22,7 +22,6 @@ const SubscriptionPanel = () => {
     fetchSubscriptions();
   }, []);
 
-  // Add manage/renew/cancel logic as needed
 
   return (
     <div className="bg-white rounded-lg shadow p-4">

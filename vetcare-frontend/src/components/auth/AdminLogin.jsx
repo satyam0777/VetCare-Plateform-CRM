@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState(''); // ✅ Empty by default
-  const [password, setPassword] = useState(''); // ✅ Empty by default
+  const [email, setEmail] = useState(''); 
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -15,17 +15,17 @@ const AdminLogin = () => {
     setError('');
 
     try {
-      // Clear any existing tokens first
+   
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('userRole');
       
-      console.log('🧹 Cleared existing localStorage');
-      console.log('🔐 Attempting admin login with:', { email, password: password.substring(0, 3) + '***' });
+      console.log(' Cleared existing localStorage');
+      console.log('Attempting admin login with:', { email, password: password.substring(0, 3) + '***' });
       
       const response = await api.post('/auth/login', { email, password });
       
-      console.log('📨 Login response:', { 
+      console.log(' Login response:', { 
         user: response.data.user?.name, 
         role: response.data.user?.role,
         tokenLength: response.data.token?.length 
@@ -42,13 +42,13 @@ const AdminLogin = () => {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       localStorage.setItem('userRole', 'admin');
       
-      console.log('✅ Admin credentials stored successfully');
-      console.log('🎯 Token preview:', response.data.token.substring(0, 50) + '...');
+      console.log(' Admin credentials stored successfully');
+      console.log(' Token preview:', response.data.token.substring(0, 50) + '...');
       
       // Navigate to admin dashboard
       navigate('/admin-dashboard');
     } catch (error) {
-      console.error('❌ Admin login error:', error.response?.data || error.message);
+      console.error(' Admin login error:', error.response?.data || error.message);
       setError(error.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);

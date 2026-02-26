@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://vetcare-plateform-crm.o
 import { FiFileText, FiUser, FiPhone, FiCheckCircle, FiXCircle, FiEye, FiDownload, FiTrash2 } from 'react-icons/fi';
 
 const DoctorVerificationPanel = () => {
-  console.log('🔍 DoctorVerificationPanel component rendering...');
+  console.log(' DoctorVerificationPanel component rendering...');
   
   const [pendingDoctors, setPendingDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);

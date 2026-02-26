@@ -12,17 +12,17 @@ const NotificationCenter = ({ onClose }) => {
 
   const fetchNotifications = async () => {
     try {
-      console.log('🔍 Fetching notifications...');
+      console.log(' Fetching notifications...');
       const response = await api.get('/notifications');
-      console.log('📡 Notifications response received:', response.data);
+      console.log(' Notifications response received:', response.data);
       
       // Ensure we always have an array
       const notificationsData = Array.isArray(response.data) ? response.data : 
                                (response.data.notifications && Array.isArray(response.data.notifications)) ? response.data.notifications : 
                                [];
       
-      console.log('📋 Processed notifications:', notificationsData.length, 'items');
-      console.log('🔍 First notification sample:', notificationsData[0]);
+      console.log(' Processed notifications:', notificationsData.length, 'items');
+      console.log(' First notification sample:', notificationsData[0]);
       
       setNotifications(notificationsData);
     } catch (error) {
@@ -48,12 +48,12 @@ const NotificationCenter = ({ onClose }) => {
 
   const markAllAsRead = async () => {
     try {
-      console.log('🔍 Marking all notifications as read...');
+      console.log('Marking all notifications as read...');
       await api.patch('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      console.log('✅ All notifications marked as read');
+      console.log('All notifications marked as read');
     } catch (error) {
-      console.error('❌ Failed to mark all as read:', error);
+      console.error('Failed to mark all as read:', error);
     }
   };
 

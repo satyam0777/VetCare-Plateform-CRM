@@ -21,19 +21,19 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const handleModalOpen = (modalType) => {
-    console.log('🔄 Opening modal:', modalType);
-    console.log('📱 Current modal state before:', modal);
+    console.log('Opening modal:', modalType);
+    console.log('Current modal state before:', modal);
     setModal(modalType);
-    console.log('📱 Modal should now be:', modalType);
+    console.log(' Modal should now be:', modalType);
     
     // Test if modal is actually being set
     setTimeout(() => {
-      console.log('📱 Modal state after timeout:', modal);
+      console.log(' Modal state after timeout:', modal);
     }, 100);
   };
 
   const handleModalClose = () => {
-    console.log('❌ Closing modal');
+    console.log(' Closing modal');
     setModal('');
   };
 

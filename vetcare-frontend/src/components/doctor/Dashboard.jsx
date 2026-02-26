@@ -84,6 +84,9 @@ const Dashboard = () => {
         </div>
       </div>
 
+
+
+
       {/* Doctor Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
         <div className="bg-gradient-to-br from-emerald-50/90 to-emerald-100/90 backdrop-blur-sm rounded-3xl shadow-lg p-6 flex flex-col items-center cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all border border-emerald-100/50" onClick={() => setModal('appointments')}>

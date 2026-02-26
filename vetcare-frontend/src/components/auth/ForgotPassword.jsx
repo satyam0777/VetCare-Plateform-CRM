@@ -4,7 +4,7 @@ import api from '../../utils/api';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1); // 1: enter email, 2: enter code+new password
+  const [step, setStep] = useState(1); 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');

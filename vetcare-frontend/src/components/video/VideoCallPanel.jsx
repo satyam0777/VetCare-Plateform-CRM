@@ -35,7 +35,7 @@ const VideoCallPanel = ({ appointmentId, onCallEnd, userType = 'patient' }) => {
         await joinCall(agoraClient);
 
       } catch (err) {
-        console.error('❌ Failed to initialize video call:', err);
+        console.error(' Failed to initialize video call:', err);
         setError('Failed to initialize video call. Please check your connection.');
         setCallStatus('failed');
       }
@@ -129,7 +129,7 @@ const VideoCallPanel = ({ appointmentId, onCallEnd, userType = 'patient' }) => {
       });
 
     } catch (err) {
-      console.error('❌ Failed to join call:', err);
+      console.error(' Failed to join call:', err);
       setError('Failed to join video call. Please try again.');
       setCallStatus('failed');
     }
@@ -160,7 +160,7 @@ const VideoCallPanel = ({ appointmentId, onCallEnd, userType = 'patient' }) => {
       }
 
     } catch (err) {
-      console.error('❌ Error leaving call:', err);
+      console.error(' Error leaving call:', err);
     }
   };
 
@@ -190,7 +190,7 @@ const VideoCallPanel = ({ appointmentId, onCallEnd, userType = 'patient' }) => {
       }
 
     } catch (err) {
-      console.error('❌ Error handling user published:', err);
+      console.error(' Error handling user published:', err);
     }
   };
 
