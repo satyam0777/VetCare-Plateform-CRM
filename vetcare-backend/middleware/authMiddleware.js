@@ -97,7 +97,7 @@ const auth = async (req, res, next) => {
         (decoded.id === 'admin' && decoded.role === 'admin') ||
         (decoded.role === 'admin' && decoded.id && typeof decoded.id === 'string')
       ) {
-        console.log('🔑 Admin token verified (legacy or DB admin)');
+        console.log(' Admin token verified (legacy or DB admin)');
         req.user = decoded.id;
         req.userRole = 'admin';
         req.userObj = {
@@ -138,7 +138,7 @@ const auth = async (req, res, next) => {
   }
 };
 
-// ✅ NEW: Doctor Authentication via Unique Link
+//  NEW: Doctor Authentication via Unique Link
 const doctorAuth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
@@ -163,10 +163,10 @@ const doctorAuth = async (req, res, next) => {
       }
     }
 
-    // ✅ NEW: Doctor Link Authentication
+    //  NEW: Doctor Link Authentication
     const doctorLink = req.header('Doctor-Link') || req.query.doctorLink || req.body.doctorLink;
     
-    console.log('🔍 Doctor authentication check:', {
+    console.log(' Doctor authentication check:', {
       hasAuthHeader: !!authHeader,
       hasDoctorLink: !!doctorLink,
       doctorLink: doctorLink,
@@ -185,10 +185,10 @@ const doctorAuth = async (req, res, next) => {
         req.userRole = 'doctor';
         req.userObj = doctor;
         req.isDoctorLink = true;
-        console.log(`✅ Doctor authenticated via link: ${doctor.name} (${doctor._id})`);
+        console.log(` Doctor authenticated via link: ${doctor.name} (${doctor._id})`);
         return next();
       } else {
-        console.log(`❌ Doctor not found or inactive for link: ${doctorLink}`);
+        console.log(` Doctor not found or inactive for link: ${doctorLink}`);
       }
     }
 

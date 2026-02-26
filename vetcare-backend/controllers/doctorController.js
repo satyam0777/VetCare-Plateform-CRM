@@ -56,9 +56,3 @@ exports.removeDoctor = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete doctor' });
   }
 };
-// This code defines the doctor controller for a veterinary care application.
-// It includes functions for retrieving a list of doctors and adding a new doctor to the database. 
-// The `getDoctors` function fetches all doctors from the database and returns them as a JSON response.
-// The `addDoctor` function creates a new doctor with the provided details and saves it to the database, returning the newly created doctor as a JSON response.
-// This setup is essential for managing doctor data within the application, allowing users to view available doctors and enabling administrators to add new doctors as needed.
-// The controller handles errors gracefully, responding with a 500 status code if any issues occur during database operations.

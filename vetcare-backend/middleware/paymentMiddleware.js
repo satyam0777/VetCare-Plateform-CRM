@@ -68,7 +68,7 @@ const checkPaymentStatus = async (req, res, next) => {
     next();
 
   } catch (error) {
-    console.error('❌ Error checking payment status:', error);
+    console.error(' Error checking payment status:', error);
     res.status(500).json({ error: 'Failed to verify payment status' });
   }
 };
@@ -107,11 +107,11 @@ const addPendingPayment = async (userId, appointmentId, doctorId, amount, consul
 
     await user.save();
     
-    console.log(`💰 Added pending payment: User ${userId} owes ₹${amount} for consultation ${appointmentId}`);
+    console.log(` Added pending payment: User ${userId} owes ₹${amount} for consultation ${appointmentId}`);
     return user.paymentStatus;
 
   } catch (error) {
-    console.error('❌ Error adding pending payment:', error);
+    console.error(' Error adding pending payment:', error);
     throw error;
   }
 };
@@ -144,13 +144,13 @@ const markOverduePayments = async () => {
         user.paymentStatus.paymentRestrictions.blockedReason = 'You have overdue payments. Please clear all pending payments immediately.';
         
         await user.save();
-        console.log(`⚠️ Marked overdue payments for user ${user._id}`);
+        console.log(` Marked overdue payments for user ${user._id}`);
       }
     }
 
-    console.log(`🔍 Processed overdue payments for ${users.length} users`);
+    console.log(` Processed overdue payments for ${users.length} users`);
   } catch (error) {
-    console.error('❌ Error marking overdue payments:', error);
+    console.error(' Error marking overdue payments:', error);
   }
 };
 
@@ -194,7 +194,7 @@ const getPaymentSummary = async (userId) => {
     };
 
   } catch (error) {
-    console.error('❌ Error getting payment summary:', error);
+    console.error(' Error getting payment summary:', error);
     throw error;
   }
 };

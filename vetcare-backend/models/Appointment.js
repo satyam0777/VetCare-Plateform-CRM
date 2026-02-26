@@ -1,21 +1,3 @@
-// const mongoose = require('mongoose');
-
-// const appointmentSchema = new mongoose.Schema({
-//   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-//   doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
-//   date: { type: String, required: true }, // e.g. "2025-07-10"
-//   time: { type: String, required: true }, // e.g. "10:30 AM"
-//   petName: { type: String },
-//   reason: { type: String },
-//   createdAt: { type: Date, default: Date.now },
-// });
-
-// module.exports = mongoose.model('Appointment', appointmentSchema);
-// This code defines a Mongoose schema for an Appointment model in a veterinary care application.
-// The Appointment schema includes fields for user ID, doctor ID, date, time, pet name, reason for the appointment, and a timestamp for when the appointment was created.
-// The user and doctor fields reference the User and Doctor models, respectively, allowing for relationships between these entities.
-// The schema is then exported for use in other parts of the application, such as appointment management
-
 
 const mongoose = require('mongoose');
 
@@ -73,7 +55,7 @@ const appointmentSchema = new mongoose.Schema({
     refundAmount: Number,
     refundedAt: Date,
     
-    // ===== STARTUP REVENUE TRACKING (CRITICAL) =====
+    // =====  REVENUE TRACKING  =====
     platformCommission: { type: Number, default: 0 }, // 15% of consultation fee
     doctorEarnings: { type: Number, default: 0 },      // 85% of consultation fee
     commissionRate: { type: Number, default: 0.15 },   // 15% commission rate

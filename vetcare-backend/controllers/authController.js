@@ -68,9 +68,3 @@ exports.login = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
-// This code defines the authentication controller for a veterinary care application.
-// It includes functions for user registration and login, handling user data securely with password hashing and JWT token generation.
-// The `register` function checks if a user already exists, hashes the password, saves the user to the database, and returns a JWT token.
-// The `login` function verifies the user's credentials, compares the password with the hashed version, and returns a JWT token if successful.
-// This setup is essential for managing user authentication and authorization in the application, allowing users to securely access their accounts and perform actions based on their roles (patient, doctor, admin).
-// The use of JWT tokens ensures that user sessions are secure and can be easily managed across different parts of the application.
